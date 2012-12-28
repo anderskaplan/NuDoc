@@ -7,11 +7,11 @@ namespace NuDocTests
         static void Main(string[] args)
         {
             //new DocumentationEngineTests().ShouldGenerateSlashdocForPublicTypesAndMembersOnly();
-            //new CSharpTests().ShouldReferenceArrayTypes();
+            new CSharpSignatureProviderTests().ShouldProvideSignaturesForExtensionMethodMembers();
             //new CSharpTypeReferenceProviderTests().ShouldReferenceGenericTypes();
             //new ApiReferenceHtmlWriterTests().ShouldDescribeASetOfTypes();
             //new SlashdocReaderTests().ShouldFailWhenReadingAnInvalidSlashdocFile();
-            new SlashdocIdentifierProviderTests().ShouldProvideIdentifiersForOperators();
+            //new SlashdocIdentifierProviderTests().ShouldProvideIdentifiersForOperators();
         }
     }
 }

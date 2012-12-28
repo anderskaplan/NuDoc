@@ -8,7 +8,8 @@ namespace NuDoc
         static void Main(string[] args)
         {
             // TODO get the assembly file name from the command line instead ... eventually.
-            var assemblyFileName = @"..\..\..\SampleAssembly\bin\Debug\SampleAssembly.dll";
+            //var assemblyFileName = @"..\..\..\SampleAssembly\bin\Debug\SampleAssembly.dll";
+            var assemblyFileName = @"..\..\..\..\taglib-sharp\src\Release\taglib-sharp.dll";
 
             using (var assembly = new AssemblyReflector(assemblyFileName))
             {

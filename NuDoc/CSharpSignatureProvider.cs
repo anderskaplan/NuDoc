@@ -377,14 +377,19 @@
         {
             sb.Append("(");
 
-            if (method.GetCustomAttributes(typeof(ExtensionAttribute), true).Length > 0)
+            if (IsExtensionMethod(method))
             {
-                // extension method: append "this" to the first parameter.
                 sb.Append("this ");
             }
 
             sb.Append(FormatParameters(method.GetParameters(), typeReferencer));
             sb.Append(")");
+        }
+
+        private static bool IsExtensionMethod(MethodBase method)
+        {
+            var attributes = CustomAttributeData.GetCustomAttributes(method);
+            return attributes.Any(x => x.ToString() == string.Format("[{0}()]", typeof(ExtensionAttribute).FullName));
         }
 
         private static string FormatParameters(IEnumerable<ParameterInfo> parameters, CSharpTypeReferenceProvider typeReferencer)
