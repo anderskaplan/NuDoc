@@ -40,14 +40,21 @@
             WriteTextElement("title", title);
             _writer.WriteStartElement("style");
             _writer.WriteAttributeString("type", "text/css");
-            _writer.WriteString("body { font-family: Arial, Helvetica, sans-serif; font-size: small; }");
-            _writer.WriteString("table.descriptions { border-collapse: collapse; margin-bottom: 10px; }");
-            _writer.WriteString("table.descriptions th, td { width: 400px; padding: 5px; border: 1px solid #E8E8E8; }");
-            _writer.WriteString("table.descriptions th { background: #E8E8E8 }");
+            WriteEmbeddedStyleSheet();
             _writer.WriteEndElement(); // style
             _writer.WriteEndElement(); // head
 
             _writer.WriteStartElement("body");
+        }
+
+        private void WriteEmbeddedStyleSheet()
+        {
+            _writer.WriteString("body { font-family: Arial, Helvetica, sans-serif; font-size: small; }");
+            _writer.WriteString("h2 { margin-top: 30px; }");
+            _writer.WriteString("table.descriptions { border-collapse: collapse; margin-bottom: 10px; }");
+            _writer.WriteString("table.descriptions th, table.descriptions td { width: 400px; padding: 5px; border: 1px solid #E8E8E8; }");
+            _writer.WriteString("table.descriptions th { background: #E8E8E8 }");
+            _writer.WriteString("table.typeheader { border-collapse: collapse; border: none; width: 820px; }");
         }
 
         virtual protected void Dispose(bool disposing)
@@ -69,14 +76,42 @@
 
         public void DescribeAssembly(IAssemblyReflector assembly)
         {
-            var types = assembly.Types
-                .Where(t => ReflectionHelper.IsVisible(t))
-                .OrderBy(t => _language.GetDisplayName(t));
+            var title = string.Format("{0} public API reference", assembly.SimpleName);
+            WriteTextElement("h1", title);
 
-            foreach (var type in types)
+            WriteTypesOverviewTable(assembly);
+
+            foreach (var type in assembly.Types
+                .Where(t => ReflectionHelper.IsVisible(t))
+                .OrderBy(t => _language.GetDisplayName(t)))
             {
                 DescribeType(type);
             }
+        }
+
+        private void WriteTypesOverviewTable(IAssemblyReflector assembly)
+        {
+            WriteDescriptionTableHead("Types");
+
+            foreach (var type in assembly.Types
+                .Where(t => ReflectionHelper.IsVisible(t))
+                .OrderBy(t => _language.GetFullName(t)))
+            {
+                _writer.WriteStartElement("tr");
+                WriteTextElement("td", _language.GetFullName(type));
+
+                _writer.WriteStartElement("td");
+                var slashdocSummary = GetTextSummaryFromSlashdoc(SlashdocIdentifierProvider.GetId(type));
+                if (!string.IsNullOrEmpty(slashdocSummary))
+                {
+                    _writer.WriteString(slashdocSummary);
+                }
+
+                _writer.WriteEndElement(); // td
+                _writer.WriteEndElement(); // tr
+            }
+            
+            WriteDescriptionTableFoot();
         }
 
         public void DescribeType(Type type)
@@ -88,7 +123,12 @@
 
             var displayName = _language.GetDisplayName(type);
             var metaType = _language.GetMetaTypeName(type);
-            WriteTextElement("h1", string.Format(CultureInfo.InvariantCulture, "{0} {1}", displayName, metaType));
+            WriteTextElement("h2", string.Format(CultureInfo.InvariantCulture, "{0} {1}", displayName, metaType));
+
+            _writer.WriteStartElement("table");
+            _writer.WriteAttributeString("class", "typeheader");
+            _writer.WriteStartElement("tr");
+            _writer.WriteStartElement("td");
 
             var slashdocSummary = GetTextSummaryFromSlashdoc(SlashdocIdentifierProvider.GetId(type));
             if (!string.IsNullOrEmpty(slashdocSummary))
@@ -98,6 +138,10 @@
 
             WriteInfo("Namespace", type.Namespace);
             WriteInfo("Signature", _language.GetSignature(type));
+
+            _writer.WriteEndElement(); // td
+            _writer.WriteEndElement(); // tr
+            _writer.WriteEndElement(); // table
 
             if (type.IsEnum)
             {
@@ -166,7 +210,7 @@
                     WriteTextElement("td", GetTextSummaryFromSlashdoc(slashdocIdProvider(item)));
                     _writer.WriteEndElement(); // tr
                 }
-                _writer.WriteEndElement(); // table
+                WriteDescriptionTableFoot();
             }
         }
 
@@ -178,6 +222,11 @@
             WriteTextElement("th", title);
             WriteTextElement("th", "Description");
             _writer.WriteEndElement(); // tr
+        }
+
+        private void WriteDescriptionTableFoot()
+        {
+            _writer.WriteEndElement(); // table
         }
 
         private void WriteTextElement(string elementName, string content)

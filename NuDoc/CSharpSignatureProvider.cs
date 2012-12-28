@@ -48,6 +48,11 @@
             { "op_Implicit", "implicit operator" },
         };
 
+        public string GetFullName(Type type)
+        {
+            return new CSharpTypeReferenceProvider().GetTypeReference(type);
+        }
+
         /// <summary>
         /// The meta-type of a type can be for example "class", or "enum".
         /// </summary>

@@ -83,7 +83,8 @@
 
         private static void WritePublicApiReferenceHtml(IAssemblyReflector assemblyReflector, string fileName, SlashdocDictionary slashdoc, ILanguageSignatureProvider language)
         {
-            using (var apiReferenceWriter = new ApiReferenceHtmlWriter(fileName, "Public API Reference", slashdoc, language))
+            var title = string.Format("{0} public API reference", assemblyReflector.SimpleName);
+            using (var apiReferenceWriter = new ApiReferenceHtmlWriter(fileName, title, slashdoc, language))
             {
                 apiReferenceWriter.DescribeAssembly(assemblyReflector);
             }

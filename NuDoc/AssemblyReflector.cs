@@ -34,9 +34,17 @@ namespace NuDoc
 
         public IEnumerable<Type> Types
         {
-            get 
+            get
             {
                 return _assembly.GetTypes();
+            }
+        }
+
+        public string SimpleName
+        {
+            get
+            {
+                return _assembly.GetName().Name;
             }
         }
 

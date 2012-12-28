@@ -6,7 +6,12 @@
     public interface ILanguageSignatureProvider
     {
         /// <summary>
-        /// Gets the display name of a type -- without namespace and other details.
+        /// Gets the full name of a type, with namespace and all.
+        /// </summary>
+        string GetFullName(Type type);
+
+        /// <summary>
+        /// Gets the display name of a type, without namespace and other details.
         /// </summary>
         string GetDisplayName(Type type);
 

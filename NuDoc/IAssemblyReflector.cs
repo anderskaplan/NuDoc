@@ -8,8 +8,6 @@ namespace NuDoc
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
 
     /// <summary>
     /// TODO: Update summary.
@@ -20,5 +18,10 @@ namespace NuDoc
         /// Get all types implemented by the assembly.
         /// </summary>
         IEnumerable<Type> Types { get; }
+
+        /// <summary>
+        /// Assembly file name.
+        /// </summary>
+        string SimpleName { get; }
     }
 }
