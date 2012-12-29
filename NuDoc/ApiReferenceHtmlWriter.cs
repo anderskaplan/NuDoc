@@ -83,7 +83,7 @@
 
             foreach (var type in assembly.Types
                 .Where(t => ReflectionHelper.IsVisible(t))
-                .OrderBy(t => _language.GetDisplayName(t)))
+                .OrderBy(t => _language.GetShortDisplayName(t)))
             {
                 DescribeType(type);
             }
@@ -95,10 +95,10 @@
 
             foreach (var type in assembly.Types
                 .Where(t => ReflectionHelper.IsVisible(t))
-                .OrderBy(t => _language.GetFullName(t)))
+                .OrderBy(t => _language.GetDisplayName(t)))
             {
                 _writer.WriteStartElement("tr");
-                WriteTextElement("td", _language.GetFullName(type));
+                WriteTextElement("td", _language.GetDisplayName(type) + " " + _language.GetMetaTypeName(type));
 
                 _writer.WriteStartElement("td");
                 var slashdocSummary = GetTextSummaryFromSlashdoc(SlashdocIdentifierProvider.GetId(type));
@@ -119,9 +119,9 @@
             if (type == null) throw new ArgumentNullException("type");
 
             _writer.WriteStartElement("div");
-            _writer.WriteAttributeString("id", string.Format(CultureInfo.InvariantCulture, "{0}.{1}", type.Namespace, _language.GetDisplayName(type)));
+            _writer.WriteAttributeString("id", string.Format(CultureInfo.InvariantCulture, "{0}.{1}", type.Namespace, _language.GetShortDisplayName(type)));
 
-            var displayName = _language.GetDisplayName(type);
+            var displayName = _language.GetShortDisplayName(type);
             var metaType = _language.GetMetaTypeName(type);
             WriteTextElement("h2", string.Format(CultureInfo.InvariantCulture, "{0} {1}", displayName, metaType));
 

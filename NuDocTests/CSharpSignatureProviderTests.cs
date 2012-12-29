@@ -282,5 +282,37 @@
         }
 
         #endregion
+
+        [Test]
+        public void ShouldProvideDisplayNames()
+        {
+            Assert.That(language.GetDisplayName(typeof(TestData.Xyz.Foo.TestClass)), Is.EqualTo("TestData.Xyz.Foo.TestClass"));
+            Assert.That(language.GetShortDisplayName(typeof(TestData.Xyz.Foo.TestClass)), Is.EqualTo("TestClass"));
+            Assert.That(language.GetMetaTypeName(typeof(TestData.Xyz.Foo.TestClass)), Is.EqualTo("class"));
+
+            Assert.That(language.GetDisplayName(typeof(TestData.Xyz.Foo.BirdsNest.First.Inner)), Is.EqualTo("TestData.Xyz.Foo.BirdsNest.First.Inner"));
+            Assert.That(language.GetShortDisplayName(typeof(TestData.Xyz.Foo.BirdsNest.First.Inner)), Is.EqualTo("BirdsNest.First.Inner"));
+            Assert.That(language.GetMetaTypeName(typeof(TestData.Xyz.Foo.BirdsNest.First.Inner)), Is.EqualTo("class"));
+
+            Assert.That(language.GetDisplayName(typeof(TestData.Xyz.Foo.ITest)), Is.EqualTo("TestData.Xyz.Foo.ITest"));
+            Assert.That(language.GetShortDisplayName(typeof(TestData.Xyz.Foo.ITest)), Is.EqualTo("ITest"));
+            Assert.That(language.GetMetaTypeName(typeof(TestData.Xyz.Foo.ITest)), Is.EqualTo("interface"));
+
+            Assert.That(language.GetDisplayName(typeof(TestData.Xyz.Foo.TestEnum)), Is.EqualTo("TestData.Xyz.Foo.TestEnum"));
+            Assert.That(language.GetShortDisplayName(typeof(TestData.Xyz.Foo.TestEnum)), Is.EqualTo("TestEnum"));
+            Assert.That(language.GetMetaTypeName(typeof(TestData.Xyz.Foo.TestEnum)), Is.EqualTo("enum"));
+
+            Assert.That(language.GetDisplayName(typeof(TestData.Xyz.Foo.TestStruct)), Is.EqualTo("TestData.Xyz.Foo.TestStruct"));
+            Assert.That(language.GetShortDisplayName(typeof(TestData.Xyz.Foo.TestStruct)), Is.EqualTo("TestStruct"));
+            Assert.That(language.GetMetaTypeName(typeof(TestData.Xyz.Foo.TestStruct)), Is.EqualTo("struct"));
+
+            Assert.That(language.GetDisplayName(typeof(TestData.Xyz.Foo.TestGeneric<,>)), Is.EqualTo("TestData.Xyz.Foo.TestGeneric<T, G>"));
+            Assert.That(language.GetShortDisplayName(typeof(TestData.Xyz.Foo.TestGeneric<,>)), Is.EqualTo("TestGeneric<T, G>"));
+            Assert.That(language.GetMetaTypeName(typeof(TestData.Xyz.Foo.TestGeneric<,>)), Is.EqualTo("class"));
+
+            Assert.That(language.GetDisplayName(typeof(TestData.Xyz.Foo.TestGeneric<int, int>)), Is.EqualTo("TestData.Xyz.Foo.TestGeneric<int, int>"));
+            Assert.That(language.GetShortDisplayName(typeof(TestData.Xyz.Foo.TestGeneric<int, int>)), Is.EqualTo("TestGeneric<int, int>"));
+            Assert.That(language.GetMetaTypeName(typeof(TestData.Xyz.Foo.TestGeneric<int, int>)), Is.EqualTo("class"));
+        }
     }
 }

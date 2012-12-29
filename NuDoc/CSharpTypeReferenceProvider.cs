@@ -29,24 +29,77 @@
 
         private IList<object> _context;
 
+        /// <summary>
+        /// Create a new instance without a context.
+        /// </summary>
         public CSharpTypeReferenceProvider()
             : this(null)
         {
         }
 
+        /// <summary>
+        /// Create a new instance with the given type as context. Type 
+        /// references will be relative to the context type. For example, types 
+        /// within the same or a parent namespace will be referenced without 
+        /// the namespace.
+        /// </summary>
         public CSharpTypeReferenceProvider(Type context)
         {
             _context = GetFullTypeSequence(context);
         }
 
+        /// <summary>
+        /// Get a reference to the specified type, relative to the context if 
+        /// there is one.
+        /// </summary>
         public string GetTypeReference(Type type)
         {
             return GetTypeReference(type, false);
         }
 
-        public string GetTypeReferenceWithoutNamespace(Type type)
+        /// <summary>
+        /// Get a reference to the specified type, relative to the context if 
+        /// there is one.
+        /// </summary>
+        public string GetTypeReference(Type type, bool skipNamespace)
         {
-            return GetTypeReference(type, true);
+            string builtInTypeName = null;
+            if (_builtInTypes.TryGetValue(type, out builtInTypeName))
+            {
+                return builtInTypeName;
+            }
+            else if (type.IsArray)
+            {
+                return GetArrayTypeReference(type);
+            }
+            else if (type.IsPointer)
+            {
+                return GetTypeReference(type.GetElementType()) + "*";
+            }
+            else if (type.IsGenericType &&
+                !type.IsGenericTypeDefinition &&
+                type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return GetTypeReference(type.GetGenericArguments().First()) + "?";
+            }
+
+            var sequence = GetFullTypeSequence(type);
+            int skipCount = NumberOfItemsSharedWithContext(sequence);
+
+            if (skipNamespace)
+            {
+                while (skipCount < sequence.Count &&
+                    sequence[skipCount] is string)
+                {
+                    skipCount++;
+                }
+            }
+
+            return string.Join(
+                ".",
+                sequence
+                    .Skip(skipCount)
+                    .Select(item => SequenceItemToString(item)));
         }
 
         /// <summary>
@@ -71,64 +124,18 @@
             }
         }
 
-        private string GetTypeReference(Type type, bool skipNamespace)
+        private string GetArrayTypeReference(Type type)
         {
-            string builtInTypeName = null;
-            if (_builtInTypes.TryGetValue(type, out builtInTypeName))
+            var commas = string.Empty;
+            var rank = type.GetArrayRank();
+            if (rank > 1)
             {
-                return builtInTypeName;
+                commas = string.Join(
+                    " ",
+                    Enumerable.Range(0, rank - 1)
+                        .Select(x => ","));
             }
-
-            if (type.IsArray)
-            {
-                var commas = string.Empty;
-                var rank = type.GetArrayRank();
-                if (rank > 1)
-                {
-                    commas = string.Join(
-                        " ",
-                        Enumerable.Range(0, rank - 1)
-                            .Select(x => ","));
-                }
-                return GetTypeReference(type.GetElementType()) + "[" + commas + "]";
-            }
-
-            if (type.IsPointer)
-            {
-                return GetTypeReference(type.GetElementType()) + "*";
-            }
-
-            if (type.IsGenericType &&
-                !type.IsGenericTypeDefinition &&
-                type.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                return GetTypeReference(type.GetGenericArguments().First()) + "?";
-            }
-
-            var sequence = GetFullTypeSequence(type);
-
-            int skipCount = 0;
-            while (skipCount < _context.Count &&
-                skipCount + 1 < sequence.Count &&
-                _context[skipCount].Equals(sequence[skipCount]))
-            {
-                skipCount++;
-            }
-
-            if (skipNamespace)
-            {
-                while (skipCount < sequence.Count &&
-                    sequence[skipCount] is string)
-                {
-                    skipCount++;
-                }
-            }
-
-            return string.Join(
-                ".",
-                sequence
-                    .Skip(skipCount)
-                    .Select(item => SequenceItemToString(item)));
+            return GetTypeReference(type.GetElementType()) + "[" + commas + "]";
         }
 
         private IList<object> GetFullTypeSequence(Type type)
@@ -155,6 +162,19 @@
             return sequence;
         }
 
+        private int NumberOfItemsSharedWithContext(IList<object> sequence)
+        {
+            int count = 0;
+            while (count < _context.Count &&
+                count + 1 < sequence.Count &&
+                _context[count].Equals(sequence[count]))
+            {
+                count++;
+            }
+
+            return count;
+        }
+
         private string SequenceItemToString(object item)
         {
             var stringItem = item as string;
@@ -178,8 +198,10 @@
                     return string.Format(CultureInfo.InvariantCulture, "{0}<{1}>", name, parameters);
                 }
             }
-
-            return type.Name;
+            else
+            {
+                return type.Name;
+            }
         }
     }
 }

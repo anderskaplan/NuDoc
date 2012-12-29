@@ -7,7 +7,7 @@ namespace NuDocTests
         static void Main(string[] args)
         {
             //new DocumentationEngineTests().ShouldGenerateSlashdocForPublicTypesAndMembersOnly();
-            new CSharpSignatureProviderTests().ShouldProvideSignaturesForExtensionMethodMembers();
+            new CSharpSignatureProviderTests().ShouldProvideDisplayNames();
             //new CSharpTypeReferenceProviderTests().ShouldReferenceGenericTypes();
             //new ApiReferenceHtmlWriterTests().ShouldDescribeASetOfTypes();
             //new SlashdocReaderTests().ShouldFailWhenReadingAnInvalidSlashdocFile();

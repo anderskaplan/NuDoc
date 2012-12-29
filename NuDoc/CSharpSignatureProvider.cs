@@ -48,9 +48,14 @@
             { "op_Implicit", "implicit operator" },
         };
 
-        public string GetFullName(Type type)
+        public string GetDisplayName(Type type)
         {
-            return new CSharpTypeReferenceProvider().GetTypeReference(type);
+            return new CSharpTypeReferenceProvider().GetTypeReference(type, false);
+        }
+
+        public string GetShortDisplayName(Type type)
+        {
+            return new CSharpTypeReferenceProvider().GetTypeReference(type, true);
         }
 
         /// <summary>
@@ -149,7 +154,7 @@
 
         private void AppendTypeName(Type type, StringBuilder sb)
         {
-            sb.Append(GetDisplayName(type));
+            sb.Append(GetShortDisplayName(type));
         }
 
         public string GetSignature(ConstructorInfo constructor)
@@ -311,11 +316,6 @@
             sb.Append(event1.Name);
 
             return sb.ToString();
-        }
-
-        public string GetDisplayName(Type type)
-        {
-            return new CSharpTypeReferenceProvider().GetTypeReferenceWithoutNamespace(type);
         }
 
         private static bool IsDelegateType(Type type)

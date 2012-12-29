@@ -49,7 +49,7 @@
             // check type info: TestClass
             var node = navigator.SelectSingleNode("//html:div[@id='TestData.Xyz.Foo.TestClass']", resolver);
             var content = GetNodeContent(node);
-            Assert.That(content.Contains("<h1>TestClass class</h1>"), "header");
+            Assert.That(content.Contains("<h2>TestClass class</h2>"), "header");
             Assert.That(content.Contains("Slashdoc summary for the TestClass class."), "slashdoc summary");
             Assert.That(content.Contains("TestData.Xyz.Foo"), "namespace");
             Assert.That(content.Contains("class TestClass : System.ICloneable"), "signature. the access modifier is there because the class isn't public.");
@@ -91,26 +91,26 @@
 
             // check type info: TestClass.NestedClass
             content = GetSingleNodeContent("//html:div[@id='TestData.Xyz.Foo.TestClass.NestedClass']", navigator, resolver);
-            Assert.That(content.Contains("<h1>TestClass.NestedClass class</h1>"), "header");
+            Assert.That(content.Contains("<h2>TestClass.NestedClass class</h2>"), "header");
             Assert.That(content.Contains("TestData.Xyz.Foo"), "namespace");
             Assert.That(content.Contains("class TestClass.NestedClass"), "NestedClass signature");
 
             // check type info: ITest
             content = GetSingleNodeContent("//html:div[@id='TestData.Xyz.Foo.ITest']", navigator, resolver);
-            Assert.That(content.Contains("<h1>ITest interface</h1>"), "header");
+            Assert.That(content.Contains("<h2>ITest interface</h2>"), "header");
             Assert.That(content.Contains("Slashdoc summary for the ITest interface."), "slashdoc summary");
 
             // check type info: TestStruct
             node = navigator.SelectSingleNode("//html:div[@id='TestData.Xyz.Foo.TestStruct']", resolver);
             content = GetNodeContent(node);
-            Assert.That(content.Contains("<h1>TestStruct struct</h1>"), "header");
+            Assert.That(content.Contains("<h2>TestStruct struct</h2>"), "header");
             content = GetSingleNodeContent(".//html:table[.//html:th/text()='Events']", node, resolver);
             Assert.That(content.Contains("<td>event System.EventHandler PublicEvent</td>"), "event signature");
 
             // check type info: TestEnum
             node = navigator.SelectSingleNode("//html:div[@id='TestData.Xyz.Foo.TestEnum']", resolver);
             content = GetNodeContent(node);
-            Assert.That(content.Contains("<h1>TestEnum enum</h1>"), "header");
+            Assert.That(content.Contains("<h2>TestEnum enum</h2>"), "header");
             content = GetSingleNodeContent(".//html:table[.//html:th/text()='Members']", node, resolver);
             Assert.That(content.Contains("<td>One</td>"), "member signature");
             Assert.That(content.Contains("<td>[enum One]</td>"), "member slashdoc");
