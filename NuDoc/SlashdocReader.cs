@@ -53,27 +53,42 @@
                 ConformanceLevel = ConformanceLevel.Fragment
             };
 
+            var sb = new StringBuilder();
             using (var xmlReader = XmlReader.Create(new StringReader(xmlDescription), xmlReaderSettings))
             {
-                if (xmlReader.ReadToFollowing("summary") && !xmlReader.IsEmptyElement)
+                int summaryNestLevel = 0;
+
+                while (xmlReader.Read())
                 {
-                    var sb = new StringBuilder();
-
-                    xmlReader.Read();
-                    while (xmlReader.NodeType != XmlNodeType.EndElement)
+                    if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.Name.Equals("summary") && !xmlReader.IsEmptyElement)
                     {
-                        if (xmlReader.NodeType == XmlNodeType.Text)
-                        {
-                            sb.Append(xmlReader.Value);
-                        }
-                        xmlReader.Skip();
+                        summaryNestLevel++;
                     }
-
-                    return RemoveWhitespace(sb.ToString());
+                    else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name.Equals("summary"))
+                    {
+                        summaryNestLevel--;
+                    }
+                    else if (xmlReader.NodeType == XmlNodeType.Text 
+                        && summaryNestLevel > 0)
+                    {
+                        sb.Append(xmlReader.Value);
+                    }
+                    else if (xmlReader.NodeType == XmlNodeType.Element && 
+                        (xmlReader.Name.Equals("see") || xmlReader.Name.Equals("seealso")) &&
+                        summaryNestLevel > 0)
+                    {
+                        sb.Append(xmlReader.GetAttribute("cref"));
+                    }
+                    else if (xmlReader.NodeType == XmlNodeType.Element &&
+                        (xmlReader.Name.Equals("paramref") || xmlReader.Name.Equals("typeparamref")) &&
+                        summaryNestLevel > 0)
+                    {
+                        sb.Append(xmlReader.GetAttribute("name"));
+                    }
                 }
             }
 
-            return string.Empty;
+            return RemoveWhitespace(sb.ToString());
         }
 
         public void Parse()
