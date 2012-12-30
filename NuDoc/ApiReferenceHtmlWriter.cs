@@ -98,7 +98,14 @@
                 .OrderBy(t => _language.GetDisplayName(t)))
             {
                 _writer.WriteStartElement("tr");
-                WriteTextElement("td", _language.GetDisplayName(type) + " " + _language.GetMetaTypeName(type));
+
+                _writer.WriteStartElement("td");
+                _writer.WriteStartElement("a");
+                _writer.WriteAttributeString("href", "#" + _language.GetDisplayName(type));
+                _writer.WriteString(_language.GetDisplayName(type));
+                _writer.WriteEndElement(); // a
+                _writer.WriteString(" " + _language.GetMetaTypeName(type));
+                _writer.WriteEndElement(); // td
 
                 _writer.WriteStartElement("td");
                 var slashdocSummary = GetTextSummaryFromSlashdoc(SlashdocIdentifierProvider.GetId(type));
@@ -119,7 +126,7 @@
             if (type == null) throw new ArgumentNullException("type");
 
             _writer.WriteStartElement("div");
-            _writer.WriteAttributeString("id", string.Format(CultureInfo.InvariantCulture, "{0}.{1}", type.Namespace, _language.GetShortDisplayName(type)));
+            _writer.WriteAttributeString("id", _language.GetDisplayName(type));
 
             var displayName = _language.GetShortDisplayName(type);
             var metaType = _language.GetMetaTypeName(type);
