@@ -11,8 +11,8 @@ namespace NuDocTests
             //new CSharpTypeReferenceProviderTests().ShouldReferenceGenericTypes();
             //new ApiReferenceHtmlWriterTests().ShouldXmlEscapeSlashdocSummaries();
             //new SlashdocReaderTests().ShouldFailWhenReadingAnInvalidSlashdocFile();
-            //new SlashdocIdentifierProviderTests().ShouldProvideIdentifiersForOperators();
-            new AssemblyReflectorTests().ShouldLookTypesByName();
+            new SlashdocIdentifierProviderTests().ShouldProvideIdentifiersForGenericTypesAndMembers();
+            //new AssemblyReflectorTests().ShouldLookTypesByName();
             //new SlashdocSummaryHtmlFormatterTests().ShouldCreateFragmentLinksForTypeReferencesWithinTheSameAssembly();
         }
     }

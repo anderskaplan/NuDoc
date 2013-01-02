@@ -25,7 +25,10 @@
                 genericPart = string.Format(CultureInfo.InvariantCulture, "``{0}", methodOrConstructor.GetGenericArguments().Length);
             }
 
-            var parametersPart = string.Join(",", methodOrConstructor.GetParameters().Select(x => GetTypeName(x.ParameterType)));
+            var parametersPart = string.Join(
+                ",", 
+                methodOrConstructor.GetParameters()
+                    .Select(x => GetTypeName(x.ParameterType)));
             if (!string.IsNullOrEmpty(parametersPart))
             {
                 parametersPart = "(" + parametersPart + ")";
@@ -94,6 +97,14 @@
             {
                 var prefix = (type.DeclaringMethod != null) ? "``" : "`";
                 return string.Format(CultureInfo.InvariantCulture, "{0}{1}", prefix, type.GenericParameterPosition);
+            }
+
+            if (type.IsGenericType && !type.IsGenericTypeDefinition)
+            {
+                var genericTypeName = GetTypeName(type.GetGenericTypeDefinition());
+                genericTypeName = genericTypeName.Substring(0, genericTypeName.IndexOf('`'));
+                var genericArguments = string.Join(",", type.GetGenericArguments().Select(x => GetTypeName(x)));
+                return string.Format("{0}{{{1}}}", genericTypeName, genericArguments);
             }
 
             if (type.IsArray)
