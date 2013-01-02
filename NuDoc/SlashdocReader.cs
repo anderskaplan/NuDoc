@@ -12,7 +12,6 @@
     /// </summary>
     public sealed class SlashdocReader : IDisposable
     {
-        private static readonly char[] Whitespace = new[] { ' ', '\n', '\r', '\t' };
         private Stream _stream;
 
         public SlashdocReader(Stream stream)
@@ -36,59 +35,6 @@
             instance.Parse();
 
             return slashdoc;
-        }
-
-        public static string GetTextSummary(string xmlDescription)
-        {
-            if (xmlDescription == null)
-            {
-                return null;
-            }
-
-            var xmlReaderSettings = new XmlReaderSettings
-            {
-                IgnoreComments = true,
-                IgnoreProcessingInstructions = true,
-                IgnoreWhitespace = true,
-                ConformanceLevel = ConformanceLevel.Fragment
-            };
-
-            var sb = new StringBuilder();
-            using (var xmlReader = XmlReader.Create(new StringReader(xmlDescription), xmlReaderSettings))
-            {
-                int summaryNestLevel = 0;
-
-                while (xmlReader.Read())
-                {
-                    if (xmlReader.NodeType == XmlNodeType.Element && xmlReader.Name.Equals("summary") && !xmlReader.IsEmptyElement)
-                    {
-                        summaryNestLevel++;
-                    }
-                    else if (xmlReader.NodeType == XmlNodeType.EndElement && xmlReader.Name.Equals("summary"))
-                    {
-                        summaryNestLevel--;
-                    }
-                    else if (xmlReader.NodeType == XmlNodeType.Text 
-                        && summaryNestLevel > 0)
-                    {
-                        sb.Append(xmlReader.Value);
-                    }
-                    else if (xmlReader.NodeType == XmlNodeType.Element && 
-                        (xmlReader.Name.Equals("see") || xmlReader.Name.Equals("seealso")) &&
-                        summaryNestLevel > 0)
-                    {
-                        sb.Append(xmlReader.GetAttribute("cref"));
-                    }
-                    else if (xmlReader.NodeType == XmlNodeType.Element &&
-                        (xmlReader.Name.Equals("paramref") || xmlReader.Name.Equals("typeparamref")) &&
-                        summaryNestLevel > 0)
-                    {
-                        sb.Append(xmlReader.GetAttribute("name"));
-                    }
-                }
-            }
-
-            return RemoveWhitespace(sb.ToString());
         }
 
         public void Parse()
@@ -140,11 +86,6 @@
         {
             Dispose(true);
             GC.SuppressFinalize(this);
-        }
-
-        private static string RemoveWhitespace(string s)
-        {
-            return string.Join(" ", s.Split(Whitespace, StringSplitOptions.RemoveEmptyEntries));
         }
 
         private void Dispose(bool disposing)

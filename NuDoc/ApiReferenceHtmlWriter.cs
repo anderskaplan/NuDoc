@@ -47,14 +47,10 @@
             _writer.WriteStartElement("body");
         }
 
-        private void WriteEmbeddedStyleSheet()
+        public void Dispose()
         {
-            _writer.WriteString("body { font-family: Arial, Helvetica, sans-serif; font-size: small; }");
-            _writer.WriteString("h2 { margin-top: 30px; }");
-            _writer.WriteString("table.descriptions { border-collapse: collapse; margin-bottom: 10px; }");
-            _writer.WriteString("table.descriptions th, table.descriptions td { width: 400px; padding: 5px; border: 1px solid #E8E8E8; }");
-            _writer.WriteString("table.descriptions th { background: #E8E8E8 }");
-            _writer.WriteString("table.typeheader { border-collapse: collapse; border: none; width: 820px; }");
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         virtual protected void Dispose(bool disposing)
@@ -68,28 +64,34 @@
             }
         }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
         public void DescribeAssembly(IAssemblyReflector assembly)
         {
+            var formatter = new SlashdocSummaryHtmlFormatter(assembly, _language);
+
             var title = string.Format("{0} public API reference", assembly.SimpleName);
             WriteTextElement("h1", title);
 
-            WriteTypesOverviewTable(assembly);
+            WriteTypesOverviewTable(assembly, formatter);
 
             foreach (var type in assembly.Types
                 .Where(t => ReflectionHelper.IsVisible(t))
                 .OrderBy(t => _language.GetShortDisplayName(t)))
             {
-                DescribeType(type);
+                DescribeType(type, formatter);
             }
         }
 
-        private void WriteTypesOverviewTable(IAssemblyReflector assembly)
+        private void WriteEmbeddedStyleSheet()
+        {
+            _writer.WriteString("body { font-family: Arial, Helvetica, sans-serif; font-size: small; }");
+            _writer.WriteString("h2 { margin-top: 30px; }");
+            _writer.WriteString("table.descriptions { border-collapse: collapse; margin-bottom: 10px; }");
+            _writer.WriteString("table.descriptions th, table.descriptions td { width: 400px; padding: 5px; border: 1px solid #E8E8E8; }");
+            _writer.WriteString("table.descriptions th { background: #E8E8E8 }");
+            _writer.WriteString("table.typeheader { border-collapse: collapse; border: none; width: 820px; }");
+        }
+
+        private void WriteTypesOverviewTable(IAssemblyReflector assembly, SlashdocSummaryHtmlFormatter formatter)
         {
             WriteDescriptionTableHeader("Types");
 
@@ -108,20 +110,17 @@
                 _writer.WriteEndElement(); // td
 
                 _writer.WriteStartElement("td");
-                var slashdocSummary = GetTextSummaryFromSlashdoc(SlashdocIdentifierProvider.GetId(type));
-                if (!string.IsNullOrEmpty(slashdocSummary))
-                {
-                    _writer.WriteString(slashdocSummary);
-                }
-
+                var slashdocSummaryHtml = formatter.FormatSummary(_slashdoc.GetXmlDescription(SlashdocIdentifierProvider.GetId(type)));
+                _writer.WriteRaw(slashdocSummaryHtml);
                 _writer.WriteEndElement(); // td
+
                 _writer.WriteEndElement(); // tr
             }
 
             WriteDescriptionTableFooter();
         }
 
-        public void DescribeType(Type type)
+        public void DescribeType(Type type, SlashdocSummaryHtmlFormatter formatter)
         {
             if (type == null) throw new ArgumentNullException("type");
 
@@ -130,13 +129,13 @@
 
             var displayName = _language.GetShortDisplayName(type);
             var metaType = _language.GetMetaTypeName(type);
-            WriteTypeHeader(type, displayName, metaType);
+            WriteTypeHeader(type, displayName, metaType, formatter);
 
             if (type.IsEnum)
             {
                 var values = ReflectionHelper.GetEnumMembers(type)
                     .OrderBy(x => x.GetRawConstantValue());
-                WriteSection("Members", values, (x) => x.Name, (x) => SlashdocIdentifierProvider.GetId(x));
+                WriteSection("Members", values, (x) => x.Name, (x) => SlashdocIdentifierProvider.GetId(x), formatter);
             }
             else if (!HideMembers(type))
             {
@@ -144,34 +143,34 @@
 
                 var constructors = ReflectionHelper.GetVisibleConstructors(type)
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Constructors", constructors, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x));
+                WriteSection("Constructors", constructors, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
 
                 var properties = ReflectionHelper.GetVisibleProperties(type)
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Properties", properties, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x));
+                WriteSection("Properties", properties, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
 
                 var methods = ReflectionHelper.GetVisibleMethods(type)
                     .Where(x => !ReflectionHelper.IsTrivialMethod(x))
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Methods", methods, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x));
+                WriteSection("Methods", methods, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
 
                 var operators = ReflectionHelper.GetVisibleOperators(type)
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Operators", operators, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x));
+                WriteSection("Operators", operators, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
 
                 var fields = ReflectionHelper.GetVisibleFields(type)
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Fields", fields, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x));
+                WriteSection("Fields", fields, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
 
                 var events = ReflectionHelper.GetVisibleEvents(type)
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Events", events, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x));
+                WriteSection("Events", events, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
             }
 
             _writer.WriteEndElement(); // div
         }
 
-        private void WriteTypeHeader(Type type, string displayName, string metaType)
+        private void WriteTypeHeader(Type type, string displayName, string metaType, SlashdocSummaryHtmlFormatter formatter)
         {
             WriteTextElement("h2", string.Format(CultureInfo.InvariantCulture, "{0} {1}", displayName, metaType));
 
@@ -180,11 +179,8 @@
             _writer.WriteStartElement("tr");
             _writer.WriteStartElement("td");
 
-            var slashdocSummary = GetTextSummaryFromSlashdoc(SlashdocIdentifierProvider.GetId(type));
-            if (!string.IsNullOrEmpty(slashdocSummary))
-            {
-                _writer.WriteString(slashdocSummary);
-            }
+            var slashdocSummaryHtml = formatter.FormatSummary(_slashdoc.GetXmlDescription(SlashdocIdentifierProvider.GetId(type)));
+            _writer.WriteRaw(slashdocSummaryHtml);
 
             WriteInfo("Namespace", type.Namespace);
             WriteInfo("Signature", _language.GetSignature(type));
@@ -207,7 +203,7 @@
             _writer.WriteEndElement(); // p
         }
 
-        private void WriteSection<T>(string sectionHeading, IEnumerable<T> items, Func<T, string> signatureProvider, Func<T, string> slashdocIdProvider)
+        private void WriteSection<T>(string sectionHeading, IEnumerable<T> items, Func<T, string> signatureProvider, Func<T, string> slashdocIdProvider, SlashdocSummaryHtmlFormatter formatter)
         {
             if (items.Count() > 0)
             {
@@ -216,7 +212,10 @@
                 {
                     _writer.WriteStartElement("tr");
                     WriteTextElement("td", signatureProvider(item));
-                    WriteTextElement("td", GetTextSummaryFromSlashdoc(slashdocIdProvider(item)));
+                    _writer.WriteStartElement("td");
+                    var slashdocSummaryHtml = formatter.FormatSummary(_slashdoc.GetXmlDescription(slashdocIdProvider(item)));
+                    _writer.WriteRaw(slashdocSummaryHtml);
+                    _writer.WriteEndElement(); // td
                     _writer.WriteEndElement(); // tr
                 }
                 WriteDescriptionTableFooter();
@@ -243,11 +242,6 @@
             _writer.WriteStartElement(elementName);
             _writer.WriteString(content);
             _writer.WriteEndElement(); // name
-        }
-
-        private string GetTextSummaryFromSlashdoc(string key)
-        {
-            return SlashdocReader.GetTextSummary(_slashdoc.GetXmlDescription(key)) ?? string.Empty;
         }
     }
 }

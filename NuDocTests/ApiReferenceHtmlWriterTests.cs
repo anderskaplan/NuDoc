@@ -6,12 +6,15 @@
     using System.Xml.XPath;
     using NuDoc;
     using NUnit.Framework;
+    using Moq;
 
     [TestFixture]
     public class ApiReferenceHtmlWriterTests
     {
+        private static readonly IAssemblyReflector DummyAssembly = new Mock<IAssemblyReflector>().Object;
+
         [Test]
-        public void ShouldDescribeASetOfTypes()
+        public void ShouldDescribeAClassAndItsMembers_CSharp()
         {
             var slashdoc = new SlashdocDictionary();
             slashdoc.SetXmlDescription("T:TestData.Xyz.Foo.TestClass", "<summary>Slashdoc summary for the TestClass class.</summary>");
@@ -19,60 +22,47 @@
             slashdoc.SetXmlDescription("M:TestData.Xyz.Foo.TestClass.MethodReturningVoid", "<summary>[void method]</summary>");
             slashdoc.SetXmlDescription("F:TestData.Xyz.Foo.TestClass.x", "<summary>[field]</summary>");
             slashdoc.SetXmlDescription("E:TestData.Xyz.Foo.TestClass.AnEvent", "<summary>[event]</summary>");
-            slashdoc.SetXmlDescription("T:TestData.Xyz.Foo.ITest", "<summary>Slashdoc summary for the ITest interface.</summary>");
-            slashdoc.SetXmlDescription("F:TestData.Xyz.Foo.TestEnum.One", "<summary>[enum One]</summary>");
 
-            // create a memory stream and write API documentation to it using an ApiReferenceHtmlWriter.
-            var stream = new MemoryStream();
-            using (var writer = new ApiReferenceHtmlWriter(stream, false, "Xyz", slashdoc, new CSharpSignatureProvider()))
-            {
-                writer.DescribeType(typeof(TestData.Xyz.Foo.TestClass));
-                writer.DescribeType(typeof(TestData.Xyz.Foo.TestClass.NestedClass));
-                writer.DescribeType(typeof(TestData.Xyz.Foo.ITest));
-                writer.DescribeType(typeof(TestData.Xyz.Foo.TestStruct));
-                writer.DescribeType(typeof(TestData.Xyz.Foo.TestEnum));
-                writer.DescribeType(typeof(TestData.Xyz.Foo.TestGeneric<string, int>));
-            }
+            var stream = DescribeType(typeof(TestData.Xyz.Foo.TestClass), slashdoc);
 
-            stream.Seek(0, SeekOrigin.Begin);
-            var reader = new StreamReader(stream);
-            Console.WriteLine(reader.ReadToEnd());
+            //var reader = new StreamReader(stream);
+            //Console.WriteLine(reader.ReadToEnd());
+            //stream.Seek(0, SeekOrigin.Begin);
 
-            // rewind the stream and read it into an XPathDocument.
-            stream.Seek(0, SeekOrigin.Begin);
             var xmlReader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
-            var resolver = new XmlNamespaceManager(xmlReader.NameTable);
-            resolver.AddNamespace("html", "http://www.w3.org/1999/xhtml");
-            var doc = new XPathDocument(xmlReader);
-            var navigator = doc.CreateNavigator();
+            var resolver = CreateHtmlNamespaceResolver(xmlReader);
+            var navigator = CreateXPathNavigator(xmlReader);
 
-            // check type info: TestClass
+            // check type info
             var node = navigator.SelectSingleNode("//html:div[@id='TestData.Xyz.Foo.TestClass']", resolver);
             var content = GetNodeContent(node);
             Assert.That(content.Contains("<h2>TestClass class</h2>"), "header");
             Assert.That(content.Contains("Slashdoc summary for the TestClass class."), "slashdoc summary");
             Assert.That(content.Contains("TestData.Xyz.Foo"), "namespace");
-            Assert.That(content.Contains("class TestClass : System.ICloneable"), "signature. the access modifier is there because the class isn't public.");
+            Assert.That(content.Contains("class TestClass : System.ICloneable"));
 
             // constructors
             content = GetSingleNodeContent(".//html:table[.//html:th/text()='Constructors']", node, resolver);
             Assert.That(content.Contains("<td>TestClass(string xyz)</td>"), "constructor signature");
             Assert.That(content.Contains("[string ctor]"), "constructor slashdoc");
-            Assert.That(!content.Contains("public"), "public access modifier is assumed and therefore not included");
+
+            Assert.That(!content.Contains("public"), "The public access modifier is assumed and therefore not included");
 
             // properties
             content = GetSingleNodeContent(".//html:table[.//html:th/text()='Properties']", node, resolver);
             Assert.That(content.Contains("<td>int ReadOnlyProperty { get; }</td>"), "read-only property");
             Assert.That(content.Contains("<td>int ReadWriteProperty { get; set; }</td>"), "read/write property");
-            Assert.That(!content.Contains("InternalProperty"), "internal property isn't listed");
+
+            Assert.That(!content.Contains("InternalProperty"), "Non-public property isn't included.");
 
             // methods
             content = GetSingleNodeContent(".//html:table[.//html:th/text()='Methods']", node, resolver);
             Assert.That(content.Contains("<td>object Clone()</td>"), "method signature");
             Assert.That(content.Contains("<td>void MethodReturningVoid()</td>"), "MethodReturningVoid");
             Assert.That(content.Contains("[void method]"), "method slashdoc");
-            Assert.That(!content.Contains("~TestClass") && !content.Contains("Finalize()"), "the finalizer should not appear as a method.");
-            Assert.That(!content.Contains("GetType()"), "trivial methods should be removed.");
+
+            Assert.That(!content.Contains("~TestClass") && !content.Contains("Finalize()"), "The finalizer shall not appear as a method.");
+            Assert.That(!content.Contains("GetType()"), "Trivial methods shall be removed.");
 
             // operators
             content = GetSingleNodeContent(".//html:table[.//html:th/text()='Operators']", node, resolver);
@@ -88,32 +78,135 @@
             content = GetSingleNodeContent(".//html:table[.//html:th/text()='Events']", node, resolver);
             Assert.That(content.Contains("<td>static event System.EventHandler AnEvent</td>"), "event signature");
             Assert.That(content.Contains("[event]"), "event slashdoc");
+        }
 
-            // check type info: TestClass.NestedClass
-            content = GetSingleNodeContent("//html:div[@id='TestData.Xyz.Foo.TestClass.NestedClass']", navigator, resolver);
+        [Test]
+        public void ShouldDescribeANestedClass_CSharp()
+        {
+            var slashdoc = new SlashdocDictionary();
+
+            var stream = DescribeType(typeof(TestData.Xyz.Foo.TestClass.NestedClass), slashdoc);
+
+            var xmlReader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
+            var resolver = CreateHtmlNamespaceResolver(xmlReader);
+            var navigator = CreateXPathNavigator(xmlReader);
+
+            var content = GetSingleNodeContent("//html:div[@id='TestData.Xyz.Foo.TestClass.NestedClass']", navigator, resolver);
             Assert.That(content.Contains("<h2>TestClass.NestedClass class</h2>"), "header");
             Assert.That(content.Contains("TestData.Xyz.Foo"), "namespace");
             Assert.That(content.Contains("class TestClass.NestedClass"), "NestedClass signature");
+        }
 
-            // check type info: ITest
-            content = GetSingleNodeContent("//html:div[@id='TestData.Xyz.Foo.ITest']", navigator, resolver);
+        [Test]
+        public void ShouldDescribeAnInterface_CSharp()
+        {
+            var slashdoc = new SlashdocDictionary();
+            slashdoc.SetXmlDescription("T:TestData.Xyz.Foo.ITest", "<summary>Slashdoc summary for the ITest interface.</summary>");
+
+            var stream = DescribeType(typeof(TestData.Xyz.Foo.ITest), slashdoc);
+
+            var xmlReader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
+            var resolver = CreateHtmlNamespaceResolver(xmlReader);
+            var navigator = CreateXPathNavigator(xmlReader);
+
+            var content = GetSingleNodeContent("//html:div[@id='TestData.Xyz.Foo.ITest']", navigator, resolver);
             Assert.That(content.Contains("<h2>ITest interface</h2>"), "header");
             Assert.That(content.Contains("Slashdoc summary for the ITest interface."), "slashdoc summary");
+        }
 
-            // check type info: TestStruct
-            node = navigator.SelectSingleNode("//html:div[@id='TestData.Xyz.Foo.TestStruct']", resolver);
-            content = GetNodeContent(node);
+        [Test]
+        public void ShouldDescribeAStruct_CSharp()
+        {
+            var slashdoc = new SlashdocDictionary();
+
+            var stream = DescribeType(typeof(TestData.Xyz.Foo.TestStruct), slashdoc);
+
+            var xmlReader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
+            var resolver = CreateHtmlNamespaceResolver(xmlReader);
+            var navigator = CreateXPathNavigator(xmlReader);
+
+            var node = navigator.SelectSingleNode("//html:div[@id='TestData.Xyz.Foo.TestStruct']", resolver);
+            var content = GetNodeContent(node);
             Assert.That(content.Contains("<h2>TestStruct struct</h2>"), "header");
             content = GetSingleNodeContent(".//html:table[.//html:th/text()='Events']", node, resolver);
             Assert.That(content.Contains("<td>event System.EventHandler PublicEvent</td>"), "event signature");
+        }
 
-            // check type info: TestEnum
-            node = navigator.SelectSingleNode("//html:div[@id='TestData.Xyz.Foo.TestEnum']", resolver);
-            content = GetNodeContent(node);
+        [Test]
+        public void ShouldDescribeAnEnum_CSharp()
+        {
+            var slashdoc = new SlashdocDictionary();
+            slashdoc.SetXmlDescription("F:TestData.Xyz.Foo.TestEnum.One", "<summary>[enum One]</summary>");
+
+            var stream = DescribeType(typeof(TestData.Xyz.Foo.TestEnum), slashdoc);
+
+            var xmlReader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
+            var resolver = CreateHtmlNamespaceResolver(xmlReader);
+            var navigator = CreateXPathNavigator(xmlReader);
+
+            var node = navigator.SelectSingleNode("//html:div[@id='TestData.Xyz.Foo.TestEnum']", resolver);
+            var content = GetNodeContent(node);
             Assert.That(content.Contains("<h2>TestEnum enum</h2>"), "header");
             content = GetSingleNodeContent(".//html:table[.//html:th/text()='Members']", node, resolver);
             Assert.That(content.Contains("<td>One</td>"), "member signature");
             Assert.That(content.Contains("<td>[enum One]</td>"), "member slashdoc");
+        }
+
+        [Test]
+        public void ShouldDescribeAGenericClass_CSharp()
+        {
+            var slashdoc = new SlashdocDictionary();
+
+            var stream = DescribeType(typeof(TestData.Xyz.Foo.TestGeneric<,>), slashdoc);
+
+            var xmlReader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
+            var resolver = CreateHtmlNamespaceResolver(xmlReader);
+            var navigator = CreateXPathNavigator(xmlReader);
+
+            var node = navigator.SelectSingleNode("//html:div[@id='TestData.Xyz.Foo.TestGeneric<T, G>']", resolver);
+            var content = GetNodeContent(node);
+            Assert.That(content.Contains("<h2>TestGeneric&lt;T, G&gt; class</h2>"), "header");
+        }
+
+        [Test]
+        public void ShouldXmlEscapeSlashdocSummaries()
+        {
+            var slashdoc = new SlashdocDictionary();
+            slashdoc.SetXmlDescription("T:TestData.Xyz.Foo.ITest", "<summary>&lt;&lt;Hello&gt;&gt;</summary>");
+
+            var stream = DescribeType(typeof(TestData.Xyz.Foo.ITest), slashdoc);
+
+            var xmlReader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
+            var resolver = CreateHtmlNamespaceResolver(xmlReader);
+            var navigator = CreateXPathNavigator(xmlReader);
+
+            var content = GetSingleNodeContent("//html:div[@id='TestData.Xyz.Foo.ITest']", navigator, resolver);
+            Assert.That(content.Contains("&lt;&lt;Hello&gt;&gt;"), "slashdoc summary");
+        }
+
+        private static Stream DescribeType(Type type, SlashdocDictionary slashdoc)
+        {
+            var stream = new MemoryStream();
+            var language = new CSharpSignatureProvider();
+            using (var writer = new ApiReferenceHtmlWriter(stream, false, "Xyz", slashdoc, language))
+            {
+                writer.DescribeType(type, new SlashdocSummaryHtmlFormatter(DummyAssembly, language));
+            }
+            stream.Seek(0, SeekOrigin.Begin);
+            return stream;
+        }
+
+        private static XmlNamespaceManager CreateHtmlNamespaceResolver(XmlReader xmlReader)
+        {
+            var resolver = new XmlNamespaceManager(xmlReader.NameTable);
+            resolver.AddNamespace("html", "http://www.w3.org/1999/xhtml");
+            return resolver;
+        }
+
+        private static XPathNavigator CreateXPathNavigator(XmlReader xmlReader)
+        {
+            var doc = new XPathDocument(xmlReader);
+            return doc.CreateNavigator();
         }
 
         private static string GetSingleNodeContent(string xpath, XPathNavigator navigator, XmlNamespaceManager resolver)

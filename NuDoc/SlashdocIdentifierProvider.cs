@@ -5,6 +5,7 @@
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
+    using System.Text.RegularExpressions;
 
     /// <summary>
     /// Provides slashdoc ID strings for types and members.
@@ -67,6 +68,16 @@
         public static string GetId(EventInfo event1)
         {
             return string.Format(CultureInfo.InvariantCulture, "E:{0}.{1}", GetTypeName(event1.ReflectedType), HashEncode(event1.Name));
+        }
+
+        public static string GetTypeName(string slashdocId)
+        {
+            if (slashdocId == null || !slashdocId.StartsWith("T:"))
+            {
+                return null;
+            }
+
+            return slashdocId.Substring(2);
         }
 
         /// <summary>

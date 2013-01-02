@@ -267,7 +267,7 @@
             return default(G);
         }
 
-        public TestGeneric<int, G> HalfOpen()
+        public TestGeneric<int, G> HalfOpenReturn()
         {
             return null;
         }

@@ -1,10 +1,4 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="Reflector.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
-
-namespace NuDoc
+﻿namespace NuDoc
 {
     using System;
     using System.Collections.Generic;
@@ -13,9 +7,6 @@ namespace NuDoc
     using System.Reflection;
     using System.IO;
 
-    /// <summary>
-    /// TODO: Update summary.
-    /// </summary>
     public class AssemblyReflector : IAssemblyReflector
     {
         private Assembly _assembly;
@@ -32,6 +23,14 @@ namespace NuDoc
             GC.SuppressFinalize(this);
         }
 
+        public string SimpleName
+        {
+            get
+            {
+                return _assembly.GetName().Name;
+            }
+        }
+
         public IEnumerable<Type> Types
         {
             get
@@ -40,12 +39,9 @@ namespace NuDoc
             }
         }
 
-        public string SimpleName
+        public Type LookupType(string name)
         {
-            get
-            {
-                return _assembly.GetName().Name;
-            }
+            return _assembly.GetType(name, false);
         }
 
         protected virtual void Dispose(bool disposing)

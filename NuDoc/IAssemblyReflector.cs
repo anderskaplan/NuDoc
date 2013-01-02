@@ -1,27 +1,26 @@
-﻿// -----------------------------------------------------------------------
-// <copyright file="IAssemblyReflector.cs" company="">
-// TODO: Update copyright text.
-// </copyright>
-// -----------------------------------------------------------------------
-
-namespace NuDoc
+﻿namespace NuDoc
 {
     using System;
     using System.Collections.Generic;
 
     /// <summary>
-    /// TODO: Update summary.
+    /// Provides information about an assembly.
     /// </summary>
     public interface IAssemblyReflector : IDisposable
     {
+        /// <summary>
+        /// The simple name of the assembly. This is usually, but not necessarily, the file name of the manifest file of the assembly, minus its extension.
+        /// </summary>
+        string SimpleName { get; }
+
         /// <summary>
         /// Get all types implemented by the assembly.
         /// </summary>
         IEnumerable<Type> Types { get; }
 
         /// <summary>
-        /// Assembly file name.
+        /// Get a type by name, if implemented in the assembly. Otherwise null.
         /// </summary>
-        string SimpleName { get; }
+        Type LookupType(string name);
     }
 }

@@ -23,9 +23,8 @@
         /// <summary>
         /// A half-open, half-closed generic method.
         /// </summary>
-        public GenericClass<T, int> HalfOpen()
+        public void HalfOpen(GenericClass<T, int> foo)
         {
-            return null;
         }
     }
 

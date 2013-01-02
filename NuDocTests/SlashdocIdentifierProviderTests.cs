@@ -34,7 +34,7 @@ namespace NuDocTests
         {
             Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.GenericClass<,>)), Is.EqualTo("T:N.GenericClass`2"));
             Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.GenericClass<,>).GetMethod("Foo")), Is.EqualTo("M:N.GenericClass`2.Foo(`0)"));
-            Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.GenericClass<,>).GetMethod("HalfOpen")), Is.EqualTo("M:N.GenericClass`2.HalfOpen"));
+            Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.GenericClass<,>).GetMethod("HalfOpen")), Is.EqualTo("M:N.GenericClass`2.HalfOpen(N.GenericClass{`0,System.Int32})"));
             Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.GenericClass<,>).GetProperty("Property")), Is.EqualTo("P:N.GenericClass`2.Property"));
             Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.ClassWithGenericMethod).GetMethod("Foo")), Is.EqualTo("M:N.ClassWithGenericMethod.Foo``1(``0)"));
         }
@@ -85,6 +85,19 @@ namespace NuDocTests
         {
             Assert.That(SlashdocIdentifierProvider.GetId(type.GetEvent("d")), Is.EqualTo("E:N.X.d"));
         }
+
+        [Test]
+        public void ShouldGetTypeNamesFromSlashdocIds()
+        {
+            Assert.That(SlashdocIdentifierProvider.GetTypeName("T:N.X"), Is.EqualTo("N.X"));
+            Assert.That(SlashdocIdentifierProvider.GetTypeName("T:N.X.Nested"), Is.EqualTo("N.X.Nested"));
+            Assert.That(SlashdocIdentifierProvider.GetTypeName("T:N.X.D"), Is.EqualTo("N.X.D"));
+            Assert.That(SlashdocIdentifierProvider.GetTypeName("T:N.GenericClass`2"), Is.EqualTo("N.GenericClass`2"));
+            Assert.That(SlashdocIdentifierProvider.GetTypeName("T:No.Such.Type"), Is.EqualTo("No.Such.Type"));
+
+            Assert.That(SlashdocIdentifierProvider.GetTypeName(null), Is.Null);
+            Assert.That(SlashdocIdentifierProvider.GetTypeName("P:N.X.prop"), Is.Null);
+        }
     }
 }
 
@@ -98,9 +111,8 @@ namespace N
             return default(G);
         }
 
-        public GenericClass<T, int> HalfOpen()
+        public void HalfOpen(GenericClass<T, int> foo)
         {
-            return null;
         }
 
         public G Property
