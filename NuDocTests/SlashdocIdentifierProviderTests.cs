@@ -36,6 +36,8 @@ namespace NuDocTests
             Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.GenericClass<,>).GetMethod("Foo")), Is.EqualTo("M:N.GenericClass`2.Foo(`0)"));
             Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.GenericClass<,>).GetMethod("HalfOpen")), Is.EqualTo("M:N.GenericClass`2.HalfOpen(N.GenericClass{`0,System.Int32})"));
             Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.GenericClass<,>).GetProperty("Property")), Is.EqualTo("P:N.GenericClass`2.Property"));
+            Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.GenericClass<,>).GetMethod("TryGetValue")), Is.EqualTo("M:N.GenericClass`2.TryGetValue(`0,`1@)"));
+            Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.GenericClass<,>).GetMethod("OutParameter")), Is.EqualTo("M:N.GenericClass`2.OutParameter(`1@)"));
             Assert.That(SlashdocIdentifierProvider.GetId(typeof(N.ClassWithGenericMethod).GetMethod("Foo")), Is.EqualTo("M:N.ClassWithGenericMethod.Foo``1(``0)"));
         }
 
@@ -118,6 +120,16 @@ namespace N
         public G Property
         {
             get { return default(G); }
+        }
+
+        public bool TryGetValue(T t, ref G g)
+        {
+            return false;
+        }
+
+        public void OutParameter(out G g)
+        {
+            g = default(G);
         }
     }
 

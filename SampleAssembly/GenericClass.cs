@@ -26,6 +26,22 @@
         public void HalfOpen(GenericClass<T, int> foo)
         {
         }
+
+        /// <summary>
+        /// Method with a generic parameter passed by reference.
+        /// </summary>
+        bool TryGetValue(T t, ref G g)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Method with an generic parameter declared as "out".
+        /// </summary>
+        void OutParameter(out G g)
+        {
+            g = default(G);
+        }
     }
 
     public class ClassWithGenericMethod

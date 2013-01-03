@@ -400,9 +400,33 @@
         private static string FormatParameters(IEnumerable<ParameterInfo> parameters, CSharpTypeReferenceProvider typeReferencer)
         {
             var paramStrings = parameters
-                .Select(p => String.Format(CultureInfo.InvariantCulture, "{0} {1}", typeReferencer.GetTypeReference(p.ParameterType), p.Name))
+                .Select(p => String.Format(
+                    CultureInfo.InvariantCulture, 
+                    "{0} {1}", 
+                    FormatParameter(p, typeReferencer), 
+                    p.Name))
                 .ToArray();
             return String.Join(", ", paramStrings);
+        }
+
+        private static string FormatParameter(ParameterInfo p, CSharpTypeReferenceProvider typeReferencer)
+        {
+            if (p.ParameterType.IsByRef)
+            {
+                var elementType = typeReferencer.GetTypeReference(p.ParameterType.GetElementType());
+                if (p.IsOut)
+                {
+                    return "out " + elementType;
+                }
+                else
+                {
+                    return "ref " + elementType;
+                }
+            }
+            else
+            {
+                return typeReferencer.GetTypeReference(p.ParameterType);
+            }
         }
 
         private void AppendBaseTypeAndInterfaces(Type type, StringBuilder sb, CSharpTypeReferenceProvider typeReferencer)

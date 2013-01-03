@@ -275,6 +275,16 @@
         public void HalfOpenParameter(TestGeneric<int, G> parameter)
         {
         }
+
+        public bool TryGetValue(T t, ref G g)
+        {
+            return false;
+        }
+
+        public void OutParameter(out G g)
+        {
+            g = default(G);
+        }
     }
 
     public class TestClassWithGenericMethod

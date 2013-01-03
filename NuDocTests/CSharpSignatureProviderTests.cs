@@ -191,6 +191,8 @@
             Assert.That(language.GetSignature(type.GetMethod("Foo")), Is.EqualTo("G Foo(T t)"));
             Assert.That(language.GetSignature(type.GetMethod("HalfOpenReturn")), Is.EqualTo("TestGeneric<int, G> HalfOpenReturn()"));
             Assert.That(language.GetSignature(type.GetMethod("HalfOpenParameter")), Is.EqualTo("void HalfOpenParameter(TestGeneric<int, G> parameter)"));
+            Assert.That(language.GetSignature(type.GetMethod("TryGetValue")), Is.EqualTo("bool TryGetValue(T t, ref G g)"));
+            Assert.That(language.GetSignature(type.GetMethod("OutParameter")), Is.EqualTo("void OutParameter(out G g)"));
 
             var type2 = typeof(TestData.Xyz.Foo.TestClassWithGenericMethod);
             Assert.That(language.GetSignature(type2.GetMethod("Bar")), Is.EqualTo("void Bar<Q>(Q q)"));

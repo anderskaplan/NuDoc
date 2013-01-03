@@ -99,7 +99,8 @@
                 return string.Format(CultureInfo.InvariantCulture, "{0}{1}", prefix, type.GenericParameterPosition);
             }
 
-            if (type.IsGenericType && !type.IsGenericTypeDefinition)
+            if (type.IsGenericType && 
+                !type.IsGenericTypeDefinition) // i.e., this is an *instantiation* of a generic type
             {
                 var genericTypeName = GetTypeName(type.GetGenericTypeDefinition());
                 genericTypeName = genericTypeName.Substring(0, genericTypeName.IndexOf('`'));
@@ -121,13 +122,12 @@
                 return GetTypeName(type.GetElementType()) + "[" + rankDescription + "]";
             }
 
-            var name = type.FullName;
-
             if (type.IsByRef)
             {
-                // Change the "&", indicating a reference type, in a type name reported by Type.FullName into "@". It's the slashdoc equivalent.
-                name = name.Substring(0, name.Length - 1) + "@";
+                return GetTypeName(type.GetElementType()) + "@";
             }
+
+            var name = type.FullName;
 
             if (type.IsNested)
             {

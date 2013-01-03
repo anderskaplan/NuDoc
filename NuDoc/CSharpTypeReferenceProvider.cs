@@ -63,6 +63,11 @@
         /// </summary>
         public string GetTypeReference(Type type, bool skipNamespace)
         {
+            if (type.IsByRef)
+            {
+                throw new ArgumentException("Reference types must be unreferenced.");
+            }
+
             string builtInTypeName = null;
             if (_builtInTypes.TryGetValue(type, out builtInTypeName))
             {

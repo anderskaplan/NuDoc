@@ -13,6 +13,11 @@
 
         public string AssemblyName { get; set; }
 
+        public IEnumerable<string> Keys
+        {
+            get { return _dictionary.Keys; }
+        }
+
         public void SetXmlDescription(string key, string xmlDescription)
         {
             _dictionary[key] = xmlDescription;
@@ -23,6 +28,11 @@
             string value = null;
             _dictionary.TryGetValue(key, out value); // ignore the return value. we'll return a null string if the key didn't exist.
             return value;
+        }
+
+        public bool ContainsKey(string key)
+        {
+            return _dictionary.ContainsKey(key);
         }
     }
 }
