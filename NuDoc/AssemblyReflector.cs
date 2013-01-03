@@ -9,7 +9,10 @@
 
     public class AssemblyReflector : IAssemblyReflector
     {
+        private static readonly string[] AssemblyExtensions = new[] { ".dll", ".exe" };
+
         private Assembly _assembly;
+        private List<string> _loadingAttempted = new List<string>();
 
         public AssemblyReflector(string fileName)
         {
@@ -27,7 +30,14 @@
         {
             get
             {
-                return _assembly.GetName().Name;
+                if (_assembly != null)
+                {
+                    return _assembly.GetName().Name;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 
@@ -35,13 +45,27 @@
         {
             get
             {
-                return _assembly.GetTypes();
+                try
+                {
+                    return _assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException ex)
+                {
+                    return new Type[] { };
+                }
             }
         }
 
         public Type LookupType(string name)
         {
-            return _assembly.GetType(name, false);
+            try
+            {
+                return _assembly.GetType(name, false);
+            }
+            catch (ReflectionTypeLoadException ex)
+            {
+                return null;
+            }
         }
 
         protected virtual void Dispose(bool disposing)
@@ -54,8 +78,57 @@
 
         private Assembly CurrentDomain_ReflectionOnlyAssemblyResolve(object sender, ResolveEventArgs args)
         {
+            if (_loadingAttempted.Contains(args.Name))
+            {
+                return null;
+            }
+
             Console.WriteLine(string.Format("Loading assembly for reflection: {0}.", args.Name));
-            return Assembly.ReflectionOnlyLoad(args.Name);
+            _loadingAttempted.Add(args.Name);
+            try
+            {
+                return LoadAssembly(args.Name);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("ERROR: " + ex.Message);
+                return null;
+            }
+        }
+
+        private Assembly LoadAssembly(string assemblyName)
+        {
+            try
+            {
+                return Assembly.ReflectionOnlyLoad(assemblyName);
+            }
+            catch (FileNotFoundException)
+            {
+                var fileName = LookupAssemblyInTheLocalCache(assemblyName);
+                if (fileName != null)
+                {
+                    return Assembly.ReflectionOnlyLoadFrom(fileName);
+                }
+
+                throw;
+            }
+        }
+
+        private string LookupAssemblyInTheLocalCache(string assemblyName)
+        {
+            if (_assembly == null)
+            {
+                return null;
+            }
+
+            var directory = Path.GetDirectoryName(_assembly.Location);
+            return AssemblyExtensions
+                .Select(ext =>
+                {
+                    var simpleName = new AssemblyName(assemblyName).Name;
+                    return Path.Combine(directory, simpleName + ext);
+                })
+                .FirstOrDefault(x => File.Exists(x));
         }
     }
 }
