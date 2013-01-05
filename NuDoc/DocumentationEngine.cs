@@ -59,29 +59,7 @@
         /// <summary>
         /// Write an API reference with simple html formatting.
         /// </summary>
-        /// <param name="assemblyReflector"></param>
-        /// <param name="slashdocStream"></param>
-        /// <param name="fileName"></param>
-        public static void WritePublicApiReferenceHtml(IAssemblyReflector assemblyReflector, Stream slashdocStream, string fileName)
-        {
-            var slashdoc = SlashdocReader.Parse(slashdocStream);
-            var language = new CSharpSignatureProvider();
-            WritePublicApiReferenceHtml(assemblyReflector, fileName, slashdoc, language);
-        }
-
-        /// <summary>
-        /// Write an API reference with simple html formatting.
-        /// </summary>
-        /// <param name="assemblyReflector"></param>
-        /// <param name="fileName"></param>
-        public static void WritePublicApiReferenceHtml(IAssemblyReflector assemblyReflector, string fileName)
-        {
-            var slashdoc = new SlashdocDictionary();
-            var language = new CSharpSignatureProvider();
-            WritePublicApiReferenceHtml(assemblyReflector, fileName, slashdoc, language);
-        }
-
-        private static void WritePublicApiReferenceHtml(IAssemblyReflector assemblyReflector, string fileName, SlashdocDictionary slashdoc, ILanguageSignatureProvider language)
+        public static void WritePublicApiReferenceHtml(IAssemblyReflector assemblyReflector, string fileName, SlashdocDictionary slashdoc, ILanguageSignatureProvider language)
         {
             var title = string.Format("{0} public API reference", assemblyReflector.SimpleName);
             using (var apiReferenceWriter = new ApiReferenceHtmlWriter(fileName, title, slashdoc, language))
