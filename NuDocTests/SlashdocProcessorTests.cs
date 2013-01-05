@@ -8,7 +8,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class DocumentationEngineTests
+    public class SlashdocProcessorTests
     {
         [Test]
         public void ShouldGenerateSlashdocForPublicTypesAndMembersOnly()
@@ -17,10 +17,10 @@
 
             File.Delete(fileName);
 
-            var assembly = new AssemblyReflector(@"../../../SampleAssembly/bin/Debug/SampleAssembly.dll");
+            var assembly = new AssemblyReflector(@"../../../SampleAssembly/bin/Debug/SampleAssembly.dll", new ConsoleLogger());
             using (var slashdocStream = new FileStream(@"../../../SampleAssembly/bin/Debug/SampleAssembly.xml", FileMode.Open, FileAccess.Read))
             {
-                DocumentationEngine.WritePublicApiSlashdoc(assembly, slashdocStream, fileName);
+                SlashdocProcessor.WritePublicApiSlashdoc(assembly, slashdocStream, fileName);
             }
 
             using (var xmlReader = XmlReader.Create(new FileStream(fileName, FileMode.Open, FileAccess.Read)))

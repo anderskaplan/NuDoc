@@ -12,12 +12,14 @@
         private static readonly string[] AssemblyExtensions = new[] { ".dll", ".exe" };
 
         private Assembly _assembly;
+        private ILog _logger;
         private List<string> _loadingAttempted = new List<string>();
 
-        public AssemblyReflector(string fileName)
+        public AssemblyReflector(string fileName, ILog logger)
         {
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomain_ReflectionOnlyAssemblyResolve;
             _assembly = Assembly.ReflectionOnlyLoadFrom(fileName);
+            _logger = logger;
         }
 
         public void Dispose()
@@ -83,7 +85,7 @@
                 return null;
             }
 
-            Console.WriteLine(string.Format("Loading assembly for reflection: {0}.", args.Name));
+            _logger.Info(string.Format("Loading assembly for reflection: {0}.", args.Name));
             _loadingAttempted.Add(args.Name);
             try
             {
@@ -91,7 +93,7 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine("ERROR: " + ex.Message);
+                _logger.Error(ex.Message);
                 return null;
             }
         }

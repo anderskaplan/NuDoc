@@ -54,7 +54,7 @@
     <Compile Include="ApiReferenceHtmlWriterTests.cs" />
     <Compile Include="AssemblyReflectorTests.cs" />
     <Compile Include="CSharpTypeReferenceProviderTests.cs" />
-    <Compile Include="DocumentationEngineTests.cs" />
+    <Compile Include="SlashdocProcessorTests.cs" />
     <Compile Include="CSharpSignatureProviderTests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -3,22 +3,32 @@ using System;
 
 namespace NuDoc
 {
-    class Program
+    public class Program
     {
-        public string AssemblyFileName { get; set; }
+        private ConsoleLogger _logger;
 
-        public string OutputPath { get; set; }
-
-        static void Main(string[] args)
+        private Program(ConsoleLogger logger)
         {
-            var instance = new Program();
+            this._logger = logger;
+        }
+
+        private string AssemblyFileName { get; set; }
+
+        private string OutputPath { get; set; }
+
+        private bool EnableMissingSummaryWarnings { get; set; }
+
+        public static void Main(string[] args)
+        {
+            var logger = new ConsoleLogger();
+            var instance = new Program(logger);
             if (instance.ParseArguments(args))
             {
                 instance.Run();
             }
             else
             {
-                Console.WriteLine("Usage: NuDoc [/o output-path] assembly-file");
+                Console.WriteLine("Usage: NuDoc [/o output-path] [/m] assembly-file");
                 Console.WriteLine("Generates API documentation for .NET assemblies.");
                 Console.WriteLine();
                 Console.WriteLine("The input file is an assembly file, typically with a .dll or .exe extension.");
@@ -26,7 +36,8 @@ namespace NuDoc
                 Console.WriteLine("directory. Such a file can be generated from special documentation comments");
                 Console.WriteLine("embedded in the source code by checking the \"XML documentation file\" option in");
                 Console.WriteLine("the project settings in Visual Studio, or by specifying \"/doc\" on the command");
-                Console.WriteLine("line when building the assembly.");
+                Console.WriteLine("line when building the assembly. NuDoc uses the summary part of the XML");
+                Console.WriteLine("documentation comments only.");
                 Console.WriteLine();
                 Console.WriteLine("NuDoc produces two output files:");
                 Console.WriteLine(" - A HTML file describing the public API of the assembly. (I.e., the publicly");
@@ -38,6 +49,7 @@ namespace NuDoc
                 Console.WriteLine("  /o  Specify the path where the output files are to be written. The directory");
                 Console.WriteLine("      will be created if it doesn't already exist. The default output path is");
                 Console.WriteLine("      the current directory.");
+                Console.WriteLine("  /m  Enable warnings for missing and empty XML documentation summaries.");
             }
         }
 
@@ -57,25 +69,29 @@ namespace NuDoc
                             }
                             else
                             {
-                                Console.WriteLine("ERROR: The option /o must be followed by a path.");
+                                _logger.Error("The option /o must be followed by a path.");
                                 return false;
                             }
                             break;
 
+                        case "M":
+                            EnableMissingSummaryWarnings = true;
+                            break;
+
                         default:
-                            Console.WriteLine("ERROR: Unknown option \"{0}\".", args[i]);
+                            _logger.Error(string.Format("Unknown option \"{0}\".", args[i]));
                             return false;
                     }
                 }
                 else
                 {
-                    if (i == args.Length - 1)
+                    if (AssemblyFileName == null)
                     {
                         AssemblyFileName = args[i];
                     }
                     else
                     {
-                        Console.WriteLine("ERROR: Unknown argument \"{0}\".", args[i]);
+                        _logger.Error("Multiple input files specified.");
                     }
                 }
             }
@@ -95,7 +111,7 @@ namespace NuDoc
                     }
                 }
 
-                using (var assembly = new AssemblyReflector(AssemblyFileName))
+                using (var assembly = new AssemblyReflector(AssemblyFileName, _logger))
                 {
                     var publicApiReferenceFileName = Path.GetFileNameWithoutExtension(AssemblyFileName) + ".html";
                     var publicApiSlashdocFileName = Path.GetFileNameWithoutExtension(AssemblyFileName) + ".xml";
@@ -111,7 +127,7 @@ namespace NuDoc
                     {
                         using (var slashdocStream = new FileStream(slashdocFileName, FileMode.Open, FileAccess.Read))
                         {
-                            DocumentationEngine.WritePublicApiSlashdoc(assembly, slashdocStream, publicApiSlashdocFileName);
+                            SlashdocProcessor.WritePublicApiSlashdoc(assembly, slashdocStream, publicApiSlashdocFileName);
                         }
 
                         using (var slashdocStream = new FileStream(slashdocFileName, FileMode.Open, FileAccess.Read))
@@ -121,16 +137,21 @@ namespace NuDoc
                     }
                     else
                     {
-                        Console.WriteLine(string.Format("WARNING: Could not open slashdoc file '{0}'.", slashdocFileName));
+                        _logger.Warning(string.Format("Could not open slashdoc file '{0}'.", slashdocFileName));
                     }
 
                     var language = new CSharpSignatureProvider();
-                    DocumentationEngine.WritePublicApiReferenceHtml(assembly, publicApiReferenceFileName, slashdoc, language);
+                    var title = string.Format("{0} public API reference", assembly.SimpleName);
+                    using (var apiReferenceWriter = new ApiReferenceHtmlWriter(publicApiReferenceFileName, title, slashdoc, language, _logger))
+                    {
+                        apiReferenceWriter.EnableMissingSummaryWarnings = EnableMissingSummaryWarnings;
+                        apiReferenceWriter.DescribeAssembly(assembly);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(string.Format("ERROR: {0}", ex.Message));
+                _logger.Error(ex.Message);
             }
         }
     }

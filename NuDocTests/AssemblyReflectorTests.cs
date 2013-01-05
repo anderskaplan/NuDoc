@@ -13,7 +13,7 @@
         [Test]
         public void ShouldLookTypesByName()
         {
-            var assembly = new AssemblyReflector(@"../../../SampleAssembly/bin/Debug/SampleAssembly.dll");
+            var assembly = new AssemblyReflector(@"../../../SampleAssembly/bin/Debug/SampleAssembly.dll", new ConsoleLogger());
             
             Assert.That(assembly.LookupType("System.Guid"), Is.Null, "Lookup of a type which isn't in the assembly returns null.");
 

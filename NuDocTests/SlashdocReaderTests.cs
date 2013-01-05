@@ -28,7 +28,10 @@
 
         private static SlashdocDictionary ReadSampleAssemblySlashdoc()
         {
-            return SlashdocReader.Parse(new FileStream(@"..\..\..\SampleAssembly\bin\Debug\SampleAssembly.xml", FileMode.Open, FileAccess.Read));
+            using (var stream = new FileStream(@"..\..\..\SampleAssembly\bin\Debug\SampleAssembly.xml", FileMode.Open, FileAccess.Read))
+            {
+                return SlashdocReader.Parse(stream);
+            }
         }
     }
 }

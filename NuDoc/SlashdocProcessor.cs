@@ -7,9 +7,9 @@
     using System.Xml;
 
     /// <summary>
-    /// Produces various kinds of documentation.
+    /// Processes slashdoc data.
     /// </summary>
-    public static class DocumentationEngine
+    public static class SlashdocProcessor
     {
         /// <summary>
         /// Write a filtered slashdoc file with the public API only, for use with IntelliSense.
@@ -56,18 +56,6 @@
             }
         }
 
-        /// <summary>
-        /// Write an API reference with simple html formatting.
-        /// </summary>
-        public static void WritePublicApiReferenceHtml(IAssemblyReflector assemblyReflector, string fileName, SlashdocDictionary slashdoc, ILanguageSignatureProvider language)
-        {
-            var title = string.Format("{0} public API reference", assemblyReflector.SimpleName);
-            using (var apiReferenceWriter = new ApiReferenceHtmlWriter(fileName, title, slashdoc, language))
-            {
-                apiReferenceWriter.DescribeAssembly(assemblyReflector);
-            }
-        }
-
         private static HashSet<string> GetSlashdocIdsForAllVisibleTypesAndMembers(IAssemblyReflector assembly)
         {
             var ids = new HashSet<string>();
@@ -102,6 +90,5 @@
                 ids.Add(slashdocIdProvider(x));
             }
         }
-
     }
 }

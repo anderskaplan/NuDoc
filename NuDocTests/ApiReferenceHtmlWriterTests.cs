@@ -184,11 +184,47 @@
             Assert.That(content.Contains("&lt;&lt;Hello&gt;&gt;"), "slashdoc summary");
         }
 
+        [Test]
+        public void ShouldReportMissingSlashdocSummariesWhenWarningsAreEnabled()
+        {
+            var mockLogger = new Mock<ILog>();
+            var warningCount = 0;
+            mockLogger.Setup(x => x.Warning(It.IsAny<string>())).Callback(() => warningCount++);
+            mockLogger.Setup(x => x.Error(It.IsAny<string>())).Callback(() => Assert.Fail("An error was logged."));
+
+            DescribeTheSlashdocMappingTestClass(true, mockLogger.Object);
+
+            Assert.That(warningCount, Is.EqualTo(4), "Missing summary warnings: type, constructor, property, event.");
+        }
+
+        [Test]
+        public void ShouldNotReportMissingSlashdocSummariesWhenWarningsAreDisabled()
+        {
+            var mockLogger = new Mock<ILog>();
+            mockLogger.Setup(x => x.Warning(It.IsAny<string>())).Callback(() => Assert.Fail("A warning was logged."));
+            mockLogger.Setup(x => x.Error(It.IsAny<string>())).Callback(() => Assert.Fail("An error was logged."));
+
+            DescribeTheSlashdocMappingTestClass(false, mockLogger.Object);
+        }
+
+        private static void DescribeTheSlashdocMappingTestClass(bool enableMissingSummaryWarnings, ILog logger)
+        {
+            var language = new CSharpSignatureProvider();
+            using (var stream = new MemoryStream())
+            {
+                using (var writer = new ApiReferenceHtmlWriter(stream, false, "Xyz", new SlashdocDictionary(), language, logger))
+                {
+                    writer.EnableMissingSummaryWarnings = enableMissingSummaryWarnings;
+                    writer.DescribeType(typeof(TestData.Xyz.Foo.SlashdocMappingTestClass), new SlashdocSummaryHtmlFormatter(DummyAssembly, language));
+                }
+            }
+        }
+
         private static Stream DescribeType(Type type, SlashdocDictionary slashdoc)
         {
             var stream = new MemoryStream();
             var language = new CSharpSignatureProvider();
-            using (var writer = new ApiReferenceHtmlWriter(stream, false, "Xyz", slashdoc, language))
+            using (var writer = new ApiReferenceHtmlWriter(stream, false, "Xyz", slashdoc, language, new Mock<ILog>().Object))
             {
                 writer.DescribeType(type, new SlashdocSummaryHtmlFormatter(DummyAssembly, language));
             }

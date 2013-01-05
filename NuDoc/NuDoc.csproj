@@ -64,8 +64,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiReferenceHtmlWriter.cs" />
+    <Compile Include="ConsoleLogger.cs" />
     <Compile Include="CSharpSignatureProvider.cs" />
-    <Compile Include="DocumentationEngine.cs" />
+    <Compile Include="ILog.cs" />
+    <Compile Include="SlashdocProcessor.cs" />
     <Compile Include="IAssemblyReflector.cs" />
     <Compile Include="ILanguageSignatureProvider.cs" />
     <Compile Include="Program.cs" />

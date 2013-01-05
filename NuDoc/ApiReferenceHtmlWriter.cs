@@ -16,19 +16,23 @@
         private XmlWriter _writer;
         private SlashdocDictionary _slashdoc;
         private ILanguageSignatureProvider _language;
+        private ILog _logger;
+        private HashSet<string> _missingSlashdocIds = new HashSet<string>();
 
-        public ApiReferenceHtmlWriter(string fileName, string title, SlashdocDictionary slashdoc, ILanguageSignatureProvider language)
-            : this(new FileStream(fileName, FileMode.Create, FileAccess.Write), true, title, slashdoc, language)
+        public ApiReferenceHtmlWriter(string fileName, string title, SlashdocDictionary slashdoc, ILanguageSignatureProvider language, ILog logger)
+            : this(new FileStream(fileName, FileMode.Create, FileAccess.Write), true, title, slashdoc, language, logger)
         {
         }
 
-        public ApiReferenceHtmlWriter(Stream stream, bool closeStream, string title, SlashdocDictionary slashdoc, ILanguageSignatureProvider language)
+        public ApiReferenceHtmlWriter(Stream stream, bool closeStream, string title, SlashdocDictionary slashdoc, ILanguageSignatureProvider language, ILog logger)
         {
             if (slashdoc == null) throw new ArgumentNullException("slashdoc");
             if (language == null) throw new ArgumentNullException("language");
+            if (logger == null) throw new ArgumentNullException("logger");
 
             _slashdoc = slashdoc;
             _language = language;
+            _logger = logger;
 
             var writerSettings = new XmlWriterSettings { CloseOutput = closeStream };
             _writer = XmlWriter.Create(new StreamWriter(stream, new UTF8Encoding(false)), writerSettings);
@@ -46,6 +50,8 @@
 
             _writer.WriteStartElement("body");
         }
+
+        public bool EnableMissingSummaryWarnings { get; set; }
 
         public void Dispose()
         {
@@ -99,18 +105,22 @@
                 .Where(t => ReflectionHelper.IsVisible(t))
                 .OrderBy(t => _language.GetDisplayName(t)))
             {
+                var displayName = _language.GetDisplayName(type);
+
                 _writer.WriteStartElement("tr");
 
                 _writer.WriteStartElement("td");
                 _writer.WriteStartElement("a");
-                _writer.WriteAttributeString("href", "#" + _language.GetDisplayName(type));
-                _writer.WriteString(_language.GetDisplayName(type));
+                _writer.WriteAttributeString("href", "#" + displayName);
+                _writer.WriteString(displayName);
                 _writer.WriteEndElement(); // a
                 _writer.WriteString(" " + _language.GetMetaTypeName(type));
                 _writer.WriteEndElement(); // td
 
                 _writer.WriteStartElement("td");
-                var slashdocSummaryHtml = formatter.FormatSummary(_slashdoc.GetXmlDescription(SlashdocIdentifierProvider.GetId(type)));
+                var slashdocSummaryHtml = formatter.FormatSummary(LookupXmlDescription(
+                    SlashdocIdentifierProvider.GetId(type), 
+                    displayName + " " + _language.GetMetaTypeName(type)));
                 _writer.WriteRaw(slashdocSummaryHtml);
                 _writer.WriteEndElement(); // td
 
@@ -135,7 +145,7 @@
             {
                 var values = ReflectionHelper.GetEnumMembers(type)
                     .OrderBy(x => x.GetRawConstantValue());
-                WriteSection("Members", values, (x) => x.Name, (x) => SlashdocIdentifierProvider.GetId(x), formatter);
+                WriteSection("Members", values, (x) => x.Name, (x) => SlashdocIdentifierProvider.GetId(x), (x) => displayName + "." + x.Name, formatter);
             }
             else if (!HideMembers(type))
             {
@@ -143,28 +153,28 @@
 
                 var constructors = ReflectionHelper.GetVisibleConstructors(type)
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Constructors", constructors, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
+                WriteSection("Constructors", constructors, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), (x) => displayName + "." + x.Name, formatter);
 
                 var properties = ReflectionHelper.GetVisibleProperties(type)
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Properties", properties, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
+                WriteSection("Properties", properties, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), (x) => displayName + "." + x.Name, formatter);
 
                 var methods = ReflectionHelper.GetVisibleMethods(type)
                     .Where(x => !ReflectionHelper.IsTrivialMethod(x))
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Methods", methods, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
+                WriteSection("Methods", methods, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), (x) => displayName + "." + x.Name, formatter);
 
                 var operators = ReflectionHelper.GetVisibleOperators(type)
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Operators", operators, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
+                WriteSection("Operators", operators, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), (x) => displayName + "." + x.Name, formatter);
 
                 var fields = ReflectionHelper.GetVisibleFields(type)
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Fields", fields, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
+                WriteSection("Fields", fields, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), (x) => displayName + "." + x.Name, formatter);
 
                 var events = ReflectionHelper.GetVisibleEvents(type)
                     .OrderBy(x => SlashdocIdentifierProvider.GetId(x));
-                WriteSection("Events", events, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), formatter);
+                WriteSection("Events", events, (x) => _language.GetSignature(x), (x) => SlashdocIdentifierProvider.GetId(x), (x) => displayName + "." + x.Name, formatter);
             }
 
             _writer.WriteEndElement(); // div
@@ -179,7 +189,9 @@
             _writer.WriteStartElement("tr");
             _writer.WriteStartElement("td");
 
-            var slashdocSummaryHtml = formatter.FormatSummary(_slashdoc.GetXmlDescription(SlashdocIdentifierProvider.GetId(type)));
+            var slashdocSummaryHtml = formatter.FormatSummary(LookupXmlDescription(
+                SlashdocIdentifierProvider.GetId(type), 
+                _language.GetDisplayName(type) + " " + _language.GetMetaTypeName(type)));
             _writer.WriteRaw(slashdocSummaryHtml);
 
             WriteInfo("Namespace", type.Namespace);
@@ -203,7 +215,7 @@
             _writer.WriteEndElement(); // p
         }
 
-        private void WriteSection<T>(string sectionHeading, IEnumerable<T> items, Func<T, string> signatureProvider, Func<T, string> slashdocIdProvider, SlashdocSummaryHtmlFormatter formatter)
+        private void WriteSection<T>(string sectionHeading, IEnumerable<T> items, Func<T, string> signatureProvider, Func<T, string> slashdocIdProvider, Func<T, string> contextProvider, SlashdocSummaryHtmlFormatter formatter)
         {
             if (items.Count() > 0)
             {
@@ -213,7 +225,9 @@
                     _writer.WriteStartElement("tr");
                     WriteTextElement("td", signatureProvider(item));
                     _writer.WriteStartElement("td");
-                    var slashdocSummaryHtml = formatter.FormatSummary(_slashdoc.GetXmlDescription(slashdocIdProvider(item)));
+                    var slashdocSummaryHtml = formatter.FormatSummary(LookupXmlDescription(
+                        slashdocIdProvider(item), 
+                        contextProvider(item)));
                     _writer.WriteRaw(slashdocSummaryHtml);
                     _writer.WriteEndElement(); // td
                     _writer.WriteEndElement(); // tr
@@ -242,6 +256,29 @@
             _writer.WriteStartElement(elementName);
             _writer.WriteString(content);
             _writer.WriteEndElement(); // name
+        }
+
+        private string LookupXmlDescription(string slashdocId, string context)
+        {
+            // we keep track of slashdoc id's for which the lookup fails, so that we can avoid reporting them as missing more than once.
+            if (_missingSlashdocIds.Contains(slashdocId))
+            {
+                return null;
+            }
+
+            var xmlDescription = _slashdoc.GetXmlDescription(slashdocId);
+
+            if (xmlDescription == null)
+            {
+                if (EnableMissingSummaryWarnings)
+                {
+                    _logger.Warning(string.Format("Missing XML documentation for {0}.", context));
+                }
+
+                _missingSlashdocIds.Add(slashdocId);
+            }
+
+            return xmlDescription;
         }
     }
 }

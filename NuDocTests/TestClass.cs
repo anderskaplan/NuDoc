@@ -313,4 +313,15 @@
 
         public delegate int NestedDelegate(int x);
     }
+
+    public class SlashdocMappingTestClass
+    {
+        public SlashdocMappingTestClass()
+        {
+        }
+
+        public int SomeProperty { get; set; }
+
+        public event EventHandler AnEvent;
+    }
 }
