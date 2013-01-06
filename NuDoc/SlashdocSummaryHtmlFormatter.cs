@@ -1,19 +1,17 @@
 ﻿namespace NuDoc
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
+    using System.Globalization;
+    using System.IO;
     using System.Text;
     using System.Xml;
-    using System.IO;
-    using System.Globalization;
 
     public class SlashdocSummaryHtmlFormatter
     {
         private static readonly char[] Whitespace = new[] { ' ', '\n', '\r', '\t' };
 
         private IAssemblyReflector _assemblyReflector;
-        ILanguageSignatureProvider _language;
+        private ILanguageSignatureProvider _language;
 
         public SlashdocSummaryHtmlFormatter(IAssemblyReflector assemblyReflector, ILanguageSignatureProvider language)
         {
@@ -52,61 +50,80 @@
             return RemoveWhitespace(sb.ToString());
         }
 
+        private static string XmlEscape(string value)
+        {
+            return System.Security.SecurityElement.Escape(value);
+        }
+
+        private static string RemoveWhitespace(string s)
+        {
+            return string.Join(" ", s.Split(Whitespace, StringSplitOptions.RemoveEmptyEntries));
+        }
+
         private void HandleNode(ref int summaryNestLevel, StringBuilder sb, XmlReader xmlReader)
         {
             switch (xmlReader.NodeType)
             {
                 case XmlNodeType.Element:
-                    if (!xmlReader.IsEmptyElement &&
-                        xmlReader.Name.Equals("summary"))
                     {
-                        summaryNestLevel++;
+                        if (!xmlReader.IsEmptyElement &&
+                            xmlReader.Name.Equals("summary"))
+                        {
+                            summaryNestLevel++;
+                        }
+                        else if (summaryNestLevel > 0)
+                        {
+                            if (xmlReader.Name.Equals("c") || xmlReader.Name.Equals("code"))
+                            {
+                                sb.Append("<code>");
+                            }
+                            else if (xmlReader.Name.Equals("para"))
+                            {
+                                sb.Append("<p>");
+                            }
+                            else if (xmlReader.Name.Equals("see") || xmlReader.Name.Equals("seealso"))
+                            {
+                                sb.Append(CreateFragmentLinkForType(xmlReader.GetAttribute("cref")));
+                            }
+                            else if (xmlReader.Name.Equals("paramref") || xmlReader.Name.Equals("typeparamref"))
+                            {
+                                sb.Append(XmlEscape(xmlReader.GetAttribute("name")));
+                            }
+                        }
+
+                        break;
                     }
-                    else if (summaryNestLevel > 0)
-                    {
-                        if (xmlReader.Name.Equals("c") || xmlReader.Name.Equals("code"))
-                        {
-                            sb.Append("<code>");
-                        }
-                        else if (xmlReader.Name.Equals("para"))
-                        {
-                            sb.Append("<p>");
-                        }
-                        else if (xmlReader.Name.Equals("see") || xmlReader.Name.Equals("seealso"))
-                        {
-                            sb.Append(CreateFragmentLinkForType(xmlReader.GetAttribute("cref")));
-                        }
-                        else if (xmlReader.Name.Equals("paramref") || xmlReader.Name.Equals("typeparamref"))
-                        {
-                            sb.Append(XmlEscape(xmlReader.GetAttribute("name")));
-                        }
-                    }
-                    break;
 
                 case XmlNodeType.EndElement:
-                    if (xmlReader.Name.Equals("summary"))
                     {
-                        summaryNestLevel--;
-                    }
-                    else if (summaryNestLevel > 0)
-                    {
-                        if (xmlReader.Name.Equals("c") || xmlReader.Name.Equals("code"))
+                        if (xmlReader.Name.Equals("summary"))
                         {
-                            sb.Append("</code>");
+                            summaryNestLevel--;
                         }
-                        else if (xmlReader.Name.Equals("para"))
+                        else if (summaryNestLevel > 0)
                         {
-                            sb.Append("</p>");
+                            if (xmlReader.Name.Equals("c") || xmlReader.Name.Equals("code"))
+                            {
+                                sb.Append("</code>");
+                            }
+                            else if (xmlReader.Name.Equals("para"))
+                            {
+                                sb.Append("</p>");
+                            }
                         }
+
+                        break;
                     }
-                    break;
 
                 case XmlNodeType.Text:
-                    if (summaryNestLevel > 0)
                     {
-                        sb.Append(XmlEscape(xmlReader.Value));
+                        if (summaryNestLevel > 0)
+                        {
+                            sb.Append(XmlEscape(xmlReader.Value));
+                        }
+
+                        break;
                     }
-                    break;
             }
         }
 
@@ -129,22 +146,13 @@
                 return string.Format(
                     CultureInfo.InvariantCulture, 
                     "<a href=\"#{0}\">{1}</a>", 
-                    XmlEscape(_language.GetDisplayName(type)), XmlEscape(_language.GetShortDisplayName(type)));
+                    XmlEscape(_language.GetDisplayName(type)), 
+                    XmlEscape(_language.GetShortDisplayName(type)));
             }
             else
             {
                 return XmlEscape(typeName);
             }
-        }
-
-        private static string XmlEscape(string value)
-        {
-            return System.Security.SecurityElement.Escape(value);
-        }
-
-        private static string RemoveWhitespace(string s)
-        {
-            return string.Join(" ", s.Split(Whitespace, StringSplitOptions.RemoveEmptyEntries));
         }
     }
 }

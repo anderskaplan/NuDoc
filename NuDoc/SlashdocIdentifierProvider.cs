@@ -54,10 +54,12 @@
         public static string GetId(PropertyInfo property)
         {
             var parameters = string.Join(",", property.GetIndexParameters().Select(x => GetTypeName(x.ParameterType)));
+
             if (!string.IsNullOrEmpty(parameters))
             {
                 parameters = "(" + parameters + ")";
             }
+
             return string.Format(CultureInfo.InvariantCulture, "P:{0}.{1}{2}", GetTypeName(property.ReflectedType), HashEncode(property.Name), parameters);
         }
 
@@ -100,8 +102,9 @@
             }
 
             if (type.IsGenericType && 
-                !type.IsGenericTypeDefinition) // i.e., this is an *instantiation* of a generic type
+                !type.IsGenericTypeDefinition)
             {
+                // this is an *instantiation* of a generic type.
                 var genericTypeName = GetTypeName(type.GetGenericTypeDefinition());
                 genericTypeName = genericTypeName.Substring(0, genericTypeName.IndexOf('`'));
                 var genericArguments = string.Join(",", type.GetGenericArguments().Select(x => GetTypeName(x)));
@@ -110,16 +113,7 @@
 
             if (type.IsArray)
             {
-                var rankDescription = string.Empty;
-                var rank = type.GetArrayRank();
-                if (rank > 1)
-                {
-                    rankDescription = string.Join(
-                        ",",
-                        Enumerable.Range(0, rank)
-                            .Select(x => "0:"));
-                }
-                return GetTypeName(type.GetElementType()) + "[" + rankDescription + "]";
+                return GetTypeName(type.GetElementType()) + "[" + GetArrayRankDescription(type) + "]";
             }
 
             if (type.IsByRef)
@@ -136,6 +130,22 @@
             }
 
             return name;
+        }
+
+        private static string GetArrayRankDescription(Type type)
+        {
+            var rankDescription = string.Empty;
+
+            var rank = type.GetArrayRank();
+            if (rank > 1)
+            {
+                rankDescription = string.Join(
+                    ",",
+                    Enumerable.Range(0, rank)
+                        .Select(x => "0:"));
+            }
+            
+            return rankDescription;
         }
     }
 }

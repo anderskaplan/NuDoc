@@ -2,11 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Reflection;
-    using System.IO;
     using System.Globalization;
+    using System.IO;
+    using System.Linq;
+    using System.Reflection;
 
     public class AssemblyReflector : IAssemblyReflector
     {
@@ -21,12 +20,6 @@
             AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += CurrentDomain_ReflectionOnlyAssemblyResolve;
             _assembly = Assembly.ReflectionOnlyLoadFrom(fileName);
             _logger = logger;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
 
         public string SimpleName
@@ -71,6 +64,12 @@
                 // NOTE: errors will be logged by the CurrentDomain.ReflectionOnlyAssemblyResolve event handler.
                 return null;
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         protected virtual void Dispose(bool disposing)

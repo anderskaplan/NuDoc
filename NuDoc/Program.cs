@@ -1,9 +1,9 @@
-﻿using System.IO;
-using System;
-using System.Globalization;
-
-namespace NuDoc
+﻿namespace NuDoc
 {
+    using System;
+    using System.Globalization;
+    using System.IO;
+
     public class Program
     {
         private ConsoleLogger _logger;
@@ -67,13 +67,13 @@ namespace NuDoc
                             {
                                 OutputPath = args[i + 1];
                                 i++;
+                                break;
                             }
                             else
                             {
                                 _logger.LogError("The option /o must be followed by a path.");
                                 return false;
                             }
-                            break;
 
                         case "M":
                             EnableMissingSummaryWarnings = true;

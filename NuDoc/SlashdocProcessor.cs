@@ -14,9 +14,6 @@
         /// <summary>
         /// Write a filtered slashdoc file with the public API only, for use with IntelliSense.
         /// </summary>
-        /// <param name="assemblyReflector"></param>
-        /// <param name="slashdocStream"></param>
-        /// <param name="fileName"></param>
         public static void WritePublicApiSlashdoc(IAssemblyReflector assemblyReflector, Stream slashdocStream, string fileName)
         {
             var publicSlashdocIds = GetSlashdocIdsForAllVisibleTypesAndMembers(assemblyReflector);

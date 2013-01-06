@@ -9,17 +9,17 @@
     public interface IAssemblyReflector : IDisposable
     {
         /// <summary>
-        /// The simple name of the assembly. This is usually, but not necessarily, the file name of the manifest file of the assembly, minus its extension.
+        /// Gets the simple name of the assembly. This is usually, but not necessarily, the file name of the manifest file of the assembly, minus its extension.
         /// </summary>
         string SimpleName { get; }
 
         /// <summary>
-        /// Get all types implemented by the assembly.
+        /// Gets all types implemented by the assembly.
         /// </summary>
         IEnumerable<Type> Types { get; }
 
         /// <summary>
-        /// Get a type by name, if implemented in the assembly. Otherwise null.
+        /// Gets a type by name, if implemented in the assembly. Otherwise null.
         /// </summary>
         Type LookupType(string name);
     }

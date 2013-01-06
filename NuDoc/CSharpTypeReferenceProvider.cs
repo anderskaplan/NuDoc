@@ -30,7 +30,7 @@
         private IList<object> _context;
 
         /// <summary>
-        /// Create a new instance without a context.
+        /// Initializes a new instance without a context.
         /// </summary>
         public CSharpTypeReferenceProvider()
             : this(null)
@@ -38,7 +38,7 @@
         }
 
         /// <summary>
-        /// Create a new instance with the given type as context. Type 
+        /// Initializes a new instance with the given type as context. Type 
         /// references will be relative to the context type. For example, types 
         /// within the same or a parent namespace will be referenced without 
         /// the namespace.
@@ -46,6 +46,30 @@
         public CSharpTypeReferenceProvider(Type context)
         {
             _context = GetFullTypeSequence(context);
+        }
+
+        /// <summary>
+        /// Type name without namespace, parent types, or generic parameters. Used for constructor/finalizer names and a few other special cases.
+        /// </summary>
+        public static string GetBaseName(Type type)
+        {
+            if (type.IsGenericType)
+            {
+                var name = type.Name;
+                
+                var adjustedLength = name.Length - 1;
+                while (adjustedLength > 0 && name[adjustedLength] != '`')
+                {
+                    adjustedLength--;
+                }
+
+                var adjustedName = name.Substring(0, adjustedLength);
+                return adjustedName;
+            }
+            else
+            {
+                return type.Name;
+            }
         }
 
         /// <summary>
@@ -107,42 +131,6 @@
                     .Select(item => SequenceItemToString(item)));
         }
 
-        /// <summary>
-        /// Type name without namespace, parent types, or generic parameters. Used for constructor/finalizer names and a few other special cases.
-        /// </summary>
-        public static string GetBaseName(Type type)
-        {
-            if (type.IsGenericType)
-            {
-                var name = type.Name;
-                var adjustedLength = name.Length - 1;
-                while (adjustedLength > 0 && name[adjustedLength] != '`')
-                {
-                    adjustedLength--;
-                }
-                var adjustedName = name.Substring(0, adjustedLength);
-                return adjustedName;
-            }
-            else
-            {
-                return type.Name;
-            }
-        }
-
-        private string GetArrayTypeReference(Type type)
-        {
-            var commas = string.Empty;
-            var rank = type.GetArrayRank();
-            if (rank > 1)
-            {
-                commas = string.Join(
-                    " ",
-                    Enumerable.Range(0, rank - 1)
-                        .Select(x => ","));
-            }
-            return GetTypeReference(type.GetElementType()) + "[" + commas + "]";
-        }
-
         private static IList<object> GetFullTypeSequence(Type type)
         {
             if (type == null)
@@ -159,12 +147,29 @@
         {
             var sequence = new List<object>();
             sequence.Add(type);
+
             for (var parentType = type.DeclaringType; parentType != null; parentType = parentType.DeclaringType)
             {
                 sequence.Add(parentType);
             }
+
             sequence.Reverse();
             return sequence;
+        }
+
+        private string GetArrayTypeReference(Type type)
+        {
+            var commas = string.Empty;
+            var rank = type.GetArrayRank();
+            if (rank > 1)
+            {
+                commas = string.Join(
+                    " ",
+                    Enumerable.Range(0, rank - 1)
+                        .Select(x => ","));
+            }
+
+            return GetTypeReference(type.GetElementType()) + "[" + commas + "]";
         }
 
         private int NumberOfItemsSharedWithContext(IList<object> sequence)

@@ -53,23 +53,6 @@
 
         public bool EnableMissingSummaryWarnings { get; set; }
 
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        virtual protected void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                _writer.WriteEndElement(); // body
-                _writer.WriteEndElement(); // html
-                _writer.Close();
-                _writer = null;
-            }
-        }
-
         public void DescribeAssembly(IAssemblyReflector assembly)
         {
             var formatter = new SlashdocSummaryHtmlFormatter(assembly, _language);
@@ -85,49 +68,6 @@
             {
                 DescribeType(type, formatter);
             }
-        }
-
-        private void WriteEmbeddedStyleSheet()
-        {
-            _writer.WriteString("body { font-family: Arial, Helvetica, sans-serif; font-size: small; }");
-            _writer.WriteString("h2 { margin-top: 30px; }");
-            _writer.WriteString("table.descriptions { border-collapse: collapse; margin-bottom: 10px; }");
-            _writer.WriteString("table.descriptions th, table.descriptions td { width: 400px; padding: 5px; border: 1px solid #E8E8E8; }");
-            _writer.WriteString("table.descriptions th { background: #E8E8E8 }");
-            _writer.WriteString("table.typeheader { border-collapse: collapse; border: none; width: 820px; }");
-        }
-
-        private void WriteTypesOverviewTable(IAssemblyReflector assembly, SlashdocSummaryHtmlFormatter formatter)
-        {
-            WriteDescriptionTableHeader("Types");
-
-            foreach (var type in assembly.Types
-                .Where(t => ReflectionHelper.IsVisible(t))
-                .OrderBy(t => _language.GetDisplayName(t)))
-            {
-                var displayName = _language.GetDisplayName(type);
-
-                _writer.WriteStartElement("tr");
-
-                _writer.WriteStartElement("td");
-                _writer.WriteStartElement("a");
-                _writer.WriteAttributeString("href", "#" + displayName);
-                _writer.WriteString(displayName);
-                _writer.WriteEndElement(); // a
-                _writer.WriteString(" " + _language.GetMetaTypeName(type));
-                _writer.WriteEndElement(); // td
-
-                _writer.WriteStartElement("td");
-                var slashdocSummaryHtml = formatter.FormatSummary(LookupXmlDescription(
-                    SlashdocIdentifierProvider.GetId(type), 
-                    displayName + " " + _language.GetMetaTypeName(type)));
-                _writer.WriteRaw(slashdocSummaryHtml);
-                _writer.WriteEndElement(); // td
-
-                _writer.WriteEndElement(); // tr
-            }
-
-            WriteDescriptionTableFooter();
         }
 
         public void DescribeType(Type type, SlashdocSummaryHtmlFormatter formatter)
@@ -180,6 +120,71 @@
             _writer.WriteEndElement(); // div
         }
 
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _writer.WriteEndElement(); // body
+                _writer.WriteEndElement(); // html
+                _writer.Close();
+                _writer = null;
+            }
+        }
+
+        private static bool HideMembers(Type type)
+        {
+            return ReflectionHelper.IsDelegateType(type);
+        }
+
+        private void WriteEmbeddedStyleSheet()
+        {
+            _writer.WriteString("body { font-family: Arial, Helvetica, sans-serif; font-size: small; }");
+            _writer.WriteString("h2 { margin-top: 30px; }");
+            _writer.WriteString("table.descriptions { border-collapse: collapse; margin-bottom: 10px; }");
+            _writer.WriteString("table.descriptions th, table.descriptions td { width: 400px; padding: 5px; border: 1px solid #E8E8E8; }");
+            _writer.WriteString("table.descriptions th { background: #E8E8E8 }");
+            _writer.WriteString("table.typeheader { border-collapse: collapse; border: none; width: 820px; }");
+        }
+
+        private void WriteTypesOverviewTable(IAssemblyReflector assembly, SlashdocSummaryHtmlFormatter formatter)
+        {
+            WriteDescriptionTableHeader("Types");
+
+            foreach (var type in assembly.Types
+                .Where(t => ReflectionHelper.IsVisible(t))
+                .OrderBy(t => _language.GetDisplayName(t)))
+            {
+                var displayName = _language.GetDisplayName(type);
+
+                _writer.WriteStartElement("tr");
+
+                _writer.WriteStartElement("td");
+                _writer.WriteStartElement("a");
+                _writer.WriteAttributeString("href", "#" + displayName);
+                _writer.WriteString(displayName);
+                _writer.WriteEndElement(); // a
+                _writer.WriteString(" " + _language.GetMetaTypeName(type));
+                _writer.WriteEndElement(); // td
+
+                _writer.WriteStartElement("td");
+                var slashdocSummaryHtml = formatter.FormatSummary(LookupXmlDescription(
+                    SlashdocIdentifierProvider.GetId(type), 
+                    displayName + " " + _language.GetMetaTypeName(type)));
+                _writer.WriteRaw(slashdocSummaryHtml);
+                _writer.WriteEndElement(); // td
+
+                _writer.WriteEndElement(); // tr
+            }
+
+            WriteDescriptionTableFooter();
+        }
+
         private void WriteTypeHeader(Type type, string displayName, string metaType, SlashdocSummaryHtmlFormatter formatter)
         {
             WriteTextElement("h2", string.Format(CultureInfo.InvariantCulture, "{0} {1}", displayName, metaType));
@@ -202,11 +207,6 @@
             _writer.WriteEndElement(); // table
         }
 
-        private static bool HideMembers(Type type)
-        {
-            return ReflectionHelper.IsDelegateType(type);
-        }
-
         private void WriteInfo(string property, string value)
         {
             _writer.WriteStartElement("p");
@@ -220,6 +220,7 @@
             if (items.Count() > 0)
             {
                 WriteDescriptionTableHeader(sectionHeading);
+                
                 foreach (var item in items)
                 {
                     _writer.WriteStartElement("tr");
@@ -232,6 +233,7 @@
                     _writer.WriteEndElement(); // td
                     _writer.WriteEndElement(); // tr
                 }
+
                 WriteDescriptionTableFooter();
             }
         }

@@ -5,15 +5,15 @@
     using System.Globalization;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
     using System.Runtime.CompilerServices;
+    using System.Text;
 
     /// <summary>
     /// Provider of type/member signatures for C#.
     /// </summary>
     public class CSharpSignatureProvider : ILanguageSignatureProvider
     {
-        private static Dictionary<string, string> _operators = new Dictionary<string, string>
+        private static readonly Dictionary<string, string> Operators = new Dictionary<string, string>
         {
             // unary operators
             { "op_UnaryPlus", "operator +" },
@@ -82,14 +82,16 @@
             {
                 return "interface";
             }
-            else // not a class => value type
+            else
             {
+                // not a class & not an interface => value type
                 if (type.IsEnum)
                 {
                     return "enum";
                 }
-                else // not an enum => struct
+                else
                 {
+                    // not an enum => struct
                     return "struct";
                 }
             }
@@ -130,15 +132,17 @@
                 AppendTypeName(type, sb);
                 AppendBaseTypeAndInterfaces(type, sb, typeReferencer);
             }
-            else // not a class => value type
+            else
             {
+                // not a class & not an interface => value type
                 if (type.IsEnum)
                 {
                     AppendMetaType(type, sb);
                     AppendTypeName(type, sb);
                 }
-                else // not an enum => struct
+                else
                 {
+                    // not an enum => struct
                     AppendMetaType(type, sb);
                     AppendTypeName(type, sb);
                     AppendBaseTypeAndInterfaces(type, sb, typeReferencer);
@@ -146,17 +150,6 @@
             }
 
             return sb.ToString();
-        }
-
-        private void AppendMetaType(Type type, StringBuilder sb)
-        {
-            sb.Append(GetMetaTypeName(type)); // class, enum, or whatever.
-            sb.Append(' ');
-        }
-
-        private void AppendTypeName(Type type, StringBuilder sb)
-        {
-            sb.Append(GetShortDisplayName(type));
         }
 
         public string GetSignature(ConstructorInfo constructor)
@@ -208,14 +201,17 @@
             }
 
             sb.Append(" { ");
+
             if (getter != null)
             {
                 sb.Append("get; ");
             }
+
             if (setter != null)
             {
                 sb.Append("set; ");
             }
+            
             sb.Append("}");
 
             return sb.ToString();
@@ -245,7 +241,7 @@
             if (method.IsSpecialName && 
                 (method.Name.Equals("op_Explicit") || method.Name.Equals("op_Implicit")))
             {
-                sb.Append(_operators[method.Name]);
+                sb.Append(Operators[method.Name]);
                 sb.Append(" ");
                 operatorNameBeforeType = true;
             }
@@ -255,9 +251,9 @@
             if (!operatorNameBeforeType)
             {
                 sb.Append(" ");
-                if (method.IsSpecialName && _operators.ContainsKey(method.Name))
+                if (method.IsSpecialName && Operators.ContainsKey(method.Name))
                 {
-                    sb.Append(_operators[method.Name]);
+                    sb.Append(Operators[method.Name]);
                 }
                 else
                 {
@@ -385,13 +381,13 @@
         private static string FormatParameters(IEnumerable<ParameterInfo> parameters, CSharpTypeReferenceProvider typeReferencer)
         {
             var paramStrings = parameters
-                .Select(p => String.Format(
+                .Select(p => string.Format(
                     CultureInfo.InvariantCulture, 
                     "{0} {1}", 
                     FormatParameter(p, typeReferencer), 
                     p.Name))
                 .ToArray();
-            return String.Join(", ", paramStrings);
+            return string.Join(", ", paramStrings);
         }
 
         private static string FormatParameter(ParameterInfo p, CSharpTypeReferenceProvider typeReferencer)
@@ -435,6 +431,17 @@
                 sb.Append(" : ");
                 sb.Append(string.Join(", ", classBase));
             }
+        }
+
+        private void AppendMetaType(Type type, StringBuilder sb)
+        {
+            sb.Append(GetMetaTypeName(type)); // class, enum, or whatever.
+            sb.Append(' ');
+        }
+
+        private void AppendTypeName(Type type, StringBuilder sb)
+        {
+            sb.Append(GetShortDisplayName(type));
         }
     }
 }
