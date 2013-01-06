@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System;
+using System.Globalization;
 
 namespace NuDoc
 {
@@ -69,7 +70,7 @@ namespace NuDoc
                             }
                             else
                             {
-                                _logger.Error("The option /o must be followed by a path.");
+                                _logger.LogError("The option /o must be followed by a path.");
                                 return false;
                             }
                             break;
@@ -79,7 +80,7 @@ namespace NuDoc
                             break;
 
                         default:
-                            _logger.Error(string.Format("Unknown option \"{0}\".", args[i]));
+                            _logger.LogError(string.Format(CultureInfo.InvariantCulture, "Unknown option \"{0}\".", args[i]));
                             return false;
                     }
                 }
@@ -91,7 +92,7 @@ namespace NuDoc
                     }
                     else
                     {
-                        _logger.Error("Multiple input files specified.");
+                        _logger.LogError("Multiple input files specified.");
                     }
                 }
             }
@@ -137,11 +138,11 @@ namespace NuDoc
                     }
                     else
                     {
-                        _logger.Warning(string.Format("Could not open slashdoc file '{0}'.", slashdocFileName));
+                        _logger.LogWarning(string.Format(CultureInfo.InvariantCulture, "Could not open slashdoc file '{0}'.", slashdocFileName));
                     }
 
                     var language = new CSharpSignatureProvider();
-                    var title = string.Format("{0} public API reference", assembly.SimpleName);
+                    var title = string.Format(CultureInfo.InvariantCulture, "{0} public API reference", assembly.SimpleName);
                     using (var apiReferenceWriter = new ApiReferenceHtmlWriter(publicApiReferenceFileName, title, slashdoc, language, _logger))
                     {
                         apiReferenceWriter.EnableMissingSummaryWarnings = EnableMissingSummaryWarnings;
@@ -151,7 +152,7 @@ namespace NuDoc
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message);
+                _logger.LogError(ex.Message);
             }
         }
     }

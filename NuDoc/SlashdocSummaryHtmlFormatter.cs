@@ -6,6 +6,7 @@
     using System.Text;
     using System.Xml;
     using System.IO;
+    using System.Globalization;
 
     public class SlashdocSummaryHtmlFormatter
     {
@@ -125,7 +126,10 @@
             var type = _assemblyReflector.LookupType(typeName);
             if (type != null)
             {
-                return string.Format("<a href=\"#{0}\">{1}</a>", XmlEscape(_language.GetDisplayName(type)), XmlEscape(_language.GetShortDisplayName(type)));
+                return string.Format(
+                    CultureInfo.InvariantCulture, 
+                    "<a href=\"#{0}\">{1}</a>", 
+                    XmlEscape(_language.GetDisplayName(type)), XmlEscape(_language.GetShortDisplayName(type)));
             }
             else
             {

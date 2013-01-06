@@ -75,7 +75,7 @@
 
         public static string GetTypeName(string slashdocId)
         {
-            if (slashdocId == null || !slashdocId.StartsWith("T:"))
+            if (slashdocId == null || !slashdocId.StartsWith("T:", StringComparison.Ordinal))
             {
                 return null;
             }
@@ -105,7 +105,7 @@
                 var genericTypeName = GetTypeName(type.GetGenericTypeDefinition());
                 genericTypeName = genericTypeName.Substring(0, genericTypeName.IndexOf('`'));
                 var genericArguments = string.Join(",", type.GetGenericArguments().Select(x => GetTypeName(x)));
-                return string.Format("{0}{{{1}}}", genericTypeName, genericArguments);
+                return string.Format(CultureInfo.InvariantCulture, "{0}{{{1}}}", genericTypeName, genericArguments);
             }
 
             if (type.IsArray)

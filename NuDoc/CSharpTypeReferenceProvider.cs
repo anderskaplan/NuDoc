@@ -143,7 +143,7 @@
             return GetTypeReference(type.GetElementType()) + "[" + commas + "]";
         }
 
-        private IList<object> GetFullTypeSequence(Type type)
+        private static IList<object> GetFullTypeSequence(Type type)
         {
             if (type == null)
             {
@@ -155,7 +155,7 @@
                 .ToList();
         }
 
-        private IList<object> GetTypeAndDeclaringTypesSequence(Type type)
+        private static IList<object> GetTypeAndDeclaringTypesSequence(Type type)
         {
             var sequence = new List<object>();
             sequence.Add(type);

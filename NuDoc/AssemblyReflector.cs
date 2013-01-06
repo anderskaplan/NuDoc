@@ -6,6 +6,7 @@
     using System.Text;
     using System.Reflection;
     using System.IO;
+    using System.Globalization;
 
     public class AssemblyReflector : IAssemblyReflector
     {
@@ -51,8 +52,9 @@
                 {
                     return _assembly.GetTypes();
                 }
-                catch (ReflectionTypeLoadException ex)
+                catch (ReflectionTypeLoadException)
                 {
+                    // NOTE: errors will be logged by the CurrentDomain.ReflectionOnlyAssemblyResolve event handler.
                     return new Type[] { };
                 }
             }
@@ -64,8 +66,9 @@
             {
                 return _assembly.GetType(name, false);
             }
-            catch (ReflectionTypeLoadException ex)
+            catch (ReflectionTypeLoadException)
             {
+                // NOTE: errors will be logged by the CurrentDomain.ReflectionOnlyAssemblyResolve event handler.
                 return null;
             }
         }
@@ -85,7 +88,7 @@
                 return null;
             }
 
-            _logger.Info(string.Format("Loading assembly for reflection: {0}.", args.Name));
+            _logger.LogInfo(string.Format(CultureInfo.InvariantCulture, "Loading assembly for reflection: {0}.", args.Name));
             _loadingAttempted.Add(args.Name);
             try
             {
@@ -93,7 +96,7 @@
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message);
+                _logger.LogError(ex.Message);
                 return null;
             }
         }

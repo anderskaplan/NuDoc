@@ -10,17 +10,17 @@
     /// </summary>
     public class ConsoleLogger : ILog
     {
-        public void Info(string message)
+        public void LogInfo(string message)
         {
             Console.Out.WriteLine(message);
         }
 
-        public void Warning(string message)
+        public void LogWarning(string message)
         {
             Console.Error.WriteLine("WARNING: " + message);
         }
 
-        public void Error(string message)
+        public void LogError(string message)
         {
             Console.Error.WriteLine("ERROR: " + message);
         }

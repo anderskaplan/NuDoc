@@ -74,7 +74,7 @@
         {
             var formatter = new SlashdocSummaryHtmlFormatter(assembly, _language);
 
-            var title = string.Format("{0} public API reference", assembly.SimpleName);
+            var title = string.Format(CultureInfo.InvariantCulture, "{0} public API reference", assembly.SimpleName);
             WriteTextElement("h1", title);
 
             WriteTypesOverviewTable(assembly, formatter);
@@ -272,7 +272,7 @@
             {
                 if (EnableMissingSummaryWarnings)
                 {
-                    _logger.Warning(string.Format("Missing XML documentation for {0}.", context));
+                    _logger.LogWarning(string.Format(CultureInfo.InvariantCulture, "Missing XML documentation for {0}.", context));
                 }
 
                 _missingSlashdocIds.Add(slashdocId);

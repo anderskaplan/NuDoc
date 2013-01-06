@@ -48,6 +48,8 @@
             { "op_Implicit", "implicit operator" },
         };
 
+        private static readonly string ExtensionAttributeSignature = string.Format(CultureInfo.InvariantCulture, "[{0}()]", typeof(ExtensionAttribute).FullName);
+
         public string GetDisplayName(Type type)
         {
             return new CSharpTypeReferenceProvider().GetTypeReference(type, false);
@@ -323,23 +325,6 @@
             return type.BaseType == typeof(MulticastDelegate);
         }
 
-        private static MethodAttributes MaxMemberAccess(MethodAttributes first, MethodAttributes second)
-        {
-            foreach (var access in new[] { MethodAttributes.Public, MethodAttributes.Family, MethodAttributes.Assembly })
-            {
-                if ((first & access) == access)
-                {
-                    return first;
-                }
-                else if ((second & access) == access)
-                {
-                    return second;
-                }
-            }
-
-            return first;
-        }
-
         private static void AppendNonAccessModifiers(Type type, StringBuilder sb)
         {
             if (type.IsAbstract)
@@ -368,7 +353,7 @@
             }
         }
 
-        private void AppendGenericDeclaration(MethodInfo method, StringBuilder sb, CSharpTypeReferenceProvider typeReferencer)
+        private static void AppendGenericDeclaration(MethodInfo method, StringBuilder sb, CSharpTypeReferenceProvider typeReferencer)
         {
             if (method.IsGenericMethod)
             {
@@ -378,7 +363,7 @@
             }
         }
 
-        private void AppendMethodParameters(MethodBase method, StringBuilder sb, CSharpTypeReferenceProvider typeReferencer)
+        private static void AppendMethodParameters(MethodBase method, StringBuilder sb, CSharpTypeReferenceProvider typeReferencer)
         {
             sb.Append("(");
 
@@ -394,7 +379,7 @@
         private static bool IsExtensionMethod(MethodBase method)
         {
             var attributes = CustomAttributeData.GetCustomAttributes(method);
-            return attributes.Any(x => x.ToString() == string.Format("[{0}()]", typeof(ExtensionAttribute).FullName));
+            return attributes.Any(x => x.ToString().Equals(ExtensionAttributeSignature));
         }
 
         private static string FormatParameters(IEnumerable<ParameterInfo> parameters, CSharpTypeReferenceProvider typeReferencer)
@@ -429,7 +414,7 @@
             }
         }
 
-        private void AppendBaseTypeAndInterfaces(Type type, StringBuilder sb, CSharpTypeReferenceProvider typeReferencer)
+        private static void AppendBaseTypeAndInterfaces(Type type, StringBuilder sb, CSharpTypeReferenceProvider typeReferencer)
         {
             var classBase = new List<string>();
 

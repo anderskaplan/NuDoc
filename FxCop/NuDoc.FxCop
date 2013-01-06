@@ -21,7 +21,7 @@
   <IgnoreGeneratedCode>False</IgnoreGeneratedCode>
  </ProjectOptions>
  <Targets>
-  <Target Name="$(ProjectDir)/NuDoc/bin/Debug/NuDoc.exe" Analyze="True" AnalyzeAllChildren="True" />
+  <Target Name="$(ProjectDir)/../NuDoc/bin/Debug/NuDoc.exe" Analyze="True" AnalyzeAllChildren="True" />
  </Targets>
  <Rules>
   <RuleFiles>
@@ -41,17 +41,12 @@
  </Rules>
  <FxCopReport Version="10.0">
   <Targets>
-   <Target Name="$(ProjectDir)/NuDoc/bin/Debug/NuDoc.exe">
+   <Target Name="$(ProjectDir)/../NuDoc/bin/Debug/NuDoc.exe">
     <Modules>
      <Module Name="nudoc.exe">
       <Messages>
-       <Message TypeName="AssembliesShouldHaveValidStrongNames" Category="Microsoft.Design" CheckId="CA2210" Created="2012-10-21 18:52:58Z">
+       <Message TypeName="AssembliesShouldHaveValidStrongNames" Category="Microsoft.Design" CheckId="CA2210" Status="Excluded" Created="2012-10-21 18:52:58Z">
         <Issue Name="NoStrongName">
-         <Item>'NuDoc.exe'</Item>
-        </Issue>
-       </Message>
-       <Message TypeName="MarkAssembliesWithClsCompliant" Category="Microsoft.Design" CheckId="CA1014" Created="2012-10-21 18:52:58Z">
-        <Issue>
          <Item>'NuDoc.exe'</Item>
         </Issue>
        </Message>
@@ -59,47 +54,29 @@
       <Namespaces>
        <Namespace Name="NuDoc">
         <Types>
-         <Type Name="CSharp">
-          <Messages>
-           <Message TypeName="TypeNamesShouldNotMatchNamespaces" Category="Microsoft.Naming" CheckId="CA1724" Created="2012-10-21 18:52:58Z">
-            <Issue Name="System">
-             <Item>'CSharp'</Item>
-             <Item>Microsoft.CSharp</Item>
-            </Issue>
-           </Message>
-          </Messages>
+         <Type Name="AssemblyReflector">
           <Members>
-           <Member Name="#GetMetaType(System.Type)">
+           <Member Name="#CurrentDomain_ReflectionOnlyAssemblyResolve(System.Object,System.ResolveEventArgs)">
             <Messages>
-             <Message TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822" Created="2012-10-21 18:52:58Z" FixCategory="DependsOnFix">
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Status="Excluded" Created="2013-01-06 08:56:09Z">
               <Issue>
-               <Item>'CSharp.GetMetaType(Type)'</Item>
+               <Item>'AssemblyReflector.CurrentDomain_ReflectionOnlyAssemblyResolve(object, ResolveEventArgs)'</Item>
+               <Item>'Exception'</Item>
               </Issue>
              </Message>
             </Messages>
            </Member>
           </Members>
          </Type>
-         <Type Name="DocumentationEngine">
+         <Type Name="ILanguageSignatureProvider">
           <Members>
-           <Member Name="#WritePublicApiSlashdoc(NuDoc.IAssemblyReflector,System.IO.Stream,System.String)">
+           <Member Name="#GetSignature(System.Reflection.PropertyInfo)">
             <Messages>
-             <Message Id="assemblyReflector" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2012-10-21 18:52:58Z" FixCategory="DependsOnFix">
-              <Issue>
-               <Item>'assemblyReflector'</Item>
-               <Item>'DocumentationEngine.WritePublicApiSlashdoc(IAssemblyReflector, Stream, string)'</Item>
-              </Issue>
-             </Message>
-             <Message Id="fileName" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2012-10-21 18:52:58Z" FixCategory="DependsOnFix">
-              <Issue>
-               <Item>'fileName'</Item>
-               <Item>'DocumentationEngine.WritePublicApiSlashdoc(IAssemblyReflector, Stream, string)'</Item>
-              </Issue>
-             </Message>
-             <Message Id="slashdocStream" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2012-10-21 18:52:58Z" FixCategory="DependsOnFix">
-              <Issue>
-               <Item>'slashdocStream'</Item>
-               <Item>'DocumentationEngine.WritePublicApiSlashdoc(IAssemblyReflector, Stream, string)'</Item>
+             <Message Id="Property" TypeName="IdentifiersShouldNotMatchKeywords" Category="Microsoft.Naming" CheckId="CA1716" Status="Excluded" Created="2013-01-06 08:56:09Z">
+              <Issue Name="MemberParameter">
+               <Item>'ILanguageSignatureProvider.GetSignature(PropertyInfo)'</Item>
+               <Item>'property'</Item>
+               <Item>Property</Item>
               </Issue>
              </Message>
             </Messages>
@@ -108,12 +85,12 @@
          </Type>
          <Type Name="Program">
           <Members>
-           <Member Name="#Main(System.String[])">
+           <Member Name="#Run()">
             <Messages>
-             <Message Id="args" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2012-10-21 18:52:58Z" FixCategory="NonBreaking">
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Status="Excluded" Created="2013-01-06 08:56:09Z">
               <Issue>
-               <Item>'args'</Item>
-               <Item>'Program.Main(string[])'</Item>
+               <Item>'Program.Run()'</Item>
+               <Item>'Exception'</Item>
               </Issue>
              </Message>
             </Messages>
@@ -175,20 +152,14 @@
     <Resolution Name="First">Declare the first parameter of {0} as an object named 'sender'.</Resolution>
     <Resolution Name="Second">Declare the second parameter of {0} as an EventArgs, or an instance of a type that extends EventArgs, named 'e'.</Resolution>
    </Rule>
+   <Rule TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031">
+    <Resolution Name="Default">Modify {0} to catch a more specific exception than {1} or rethrow the exception.</Resolution>
+   </Rule>
    <Rule TypeName="IdentifiersShouldHaveCorrectSuffix" Category="Microsoft.Naming" CheckId="CA1710">
     <Resolution Name="Default">Rename {0} to end in '{1}'.</Resolution>
    </Rule>
-   <Rule TypeName="MarkAssembliesWithClsCompliant" Category="Microsoft.Design" CheckId="CA1014">
-    <Resolution Name="Default">Mark {0} with CLSCompliant(true) because it exposes externally visible types.</Resolution>
-   </Rule>
-   <Rule TypeName="MarkMembersAsStatic" Category="Microsoft.Performance" CheckId="CA1822">
-    <Resolution Name="Default">The 'this' parameter (or 'Me' in Visual Basic) of {0} is never used. Mark the member as static (or Shared in Visual Basic) or use 'this'/'Me' in the method body or at least one property accessor, if appropriate.</Resolution>
-   </Rule>
-   <Rule TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801">
-    <Resolution Name="Default">Parameter {0} of {1} is never used. Remove the parameter or use it in the method body.</Resolution>
-   </Rule>
-   <Rule TypeName="TypeNamesShouldNotMatchNamespaces" Category="Microsoft.Naming" CheckId="CA1724">
-    <Resolution Name="System">The type name {0} conflicts in whole or in part with the namespace name '{1}' defined in the .NET Framework. Rename the type to eliminate the conflict.</Resolution>
+   <Rule TypeName="IdentifiersShouldNotMatchKeywords" Category="Microsoft.Naming" CheckId="CA1716">
+    <Resolution Name="MemberParameter">In virtual/interface member {0}, rename parameter {1} so that it no longer conflicts with the reserved language keyword '{2}'. Using a reserved keyword as the name of a parameter on a virtual/interface member makes it harder for consumers in other languages to override/implement the member.</Resolution>
    </Rule>
   </Rules>
  </FxCopReport>

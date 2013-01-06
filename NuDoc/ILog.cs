@@ -10,10 +10,10 @@
     /// </summary>
     public interface ILog
     {
-        void Info(string message);
+        void LogInfo(string message);
 
-        void Warning(string message);
+        void LogWarning(string message);
 
-        void Error(string message);
+        void LogError(string message);
     }
 }

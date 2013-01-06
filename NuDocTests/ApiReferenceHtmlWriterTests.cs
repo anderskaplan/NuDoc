@@ -189,8 +189,8 @@
         {
             var mockLogger = new Mock<ILog>();
             var warningCount = 0;
-            mockLogger.Setup(x => x.Warning(It.IsAny<string>())).Callback(() => warningCount++);
-            mockLogger.Setup(x => x.Error(It.IsAny<string>())).Callback(() => Assert.Fail("An error was logged."));
+            mockLogger.Setup(x => x.LogWarning(It.IsAny<string>())).Callback(() => warningCount++);
+            mockLogger.Setup(x => x.LogError(It.IsAny<string>())).Callback(() => Assert.Fail("An error was logged."));
 
             DescribeTheSlashdocMappingTestClass(true, mockLogger.Object);
 
@@ -201,8 +201,8 @@
         public void ShouldNotReportMissingSlashdocSummariesWhenWarningsAreDisabled()
         {
             var mockLogger = new Mock<ILog>();
-            mockLogger.Setup(x => x.Warning(It.IsAny<string>())).Callback(() => Assert.Fail("A warning was logged."));
-            mockLogger.Setup(x => x.Error(It.IsAny<string>())).Callback(() => Assert.Fail("An error was logged."));
+            mockLogger.Setup(x => x.LogWarning(It.IsAny<string>())).Callback(() => Assert.Fail("A warning was logged."));
+            mockLogger.Setup(x => x.LogError(It.IsAny<string>())).Callback(() => Assert.Fail("An error was logged."));
 
             DescribeTheSlashdocMappingTestClass(false, mockLogger.Object);
         }
