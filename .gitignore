@@ -1,3 +1,4 @@
 *.suo
 TestResult.xml
 *.VisualState.xml
+~$*
