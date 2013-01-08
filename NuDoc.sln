@@ -1,16 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleAssembly", "SampleAssembly\SampleAssembly.csproj", "{C135A99B-4F46-4371-9CAE-4FD65D3F8933}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuDoc", "NuDoc\NuDoc.csproj", "{8793AB4E-1F69-448D-8442-2347B83279D7}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C135A99B-4F46-4371-9CAE-4FD65D3F8933} = {C135A99B-4F46-4371-9CAE-4FD65D3F8933}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuDocTests", "NuDocTests\NuDocTests.csproj", "{79643FFF-8AD1-4038-B952-DFF8096F6978}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C135A99B-4F46-4371-9CAE-4FD65D3F8933} = {C135A99B-4F46-4371-9CAE-4FD65D3F8933}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,10 +10,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C135A99B-4F46-4371-9CAE-4FD65D3F8933}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C135A99B-4F46-4371-9CAE-4FD65D3F8933}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C135A99B-4F46-4371-9CAE-4FD65D3F8933}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C135A99B-4F46-4371-9CAE-4FD65D3F8933}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8793AB4E-1F69-448D-8442-2347B83279D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8793AB4E-1F69-448D-8442-2347B83279D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8793AB4E-1F69-448D-8442-2347B83279D7}.Release|Any CPU.ActiveCfg = Release|x86

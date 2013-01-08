@@ -13,9 +13,9 @@
         public void ShouldParseAValidSlashdocFile()
         {
             var slashdoc = ReadSampleAssemblySlashdoc();
-            Assert.That(slashdoc.AssemblyName, Is.EqualTo("SampleAssembly"));
-            Assert.That(slashdoc.GetXmlDescription("T:SampleAssembly.Class1"), Is.EqualTo("<summary>\n            A class.\n            </summary>"));
-            Assert.That(slashdoc.GetXmlDescription("P:SampleAssembly.Class1.Foo"), Is.EqualTo("<summary>\n            An important property. <see cref=\"N:SampleAssembly\" /> Yes box allright.\n            </summary>"));
+            Assert.That(slashdoc.AssemblyName, Is.EqualTo("NuDocTests"));
+            Assert.That(slashdoc.GetXmlDescription("T:TestData.Xyz.Foo.SlashdocTestClass"), Is.EqualTo("<summary>\n            A class.\n            </summary>"));
+            Assert.That(slashdoc.GetXmlDescription("P:TestData.Xyz.Foo.SlashdocTestClass.Foo"), Is.EqualTo("<summary>\n            An important property. <see cref=\"N:TestData.Xyz.Foo\" /> Yes box allright.\n            </summary>"));
             Assert.That(slashdoc.GetXmlDescription("none-such"), Is.Null);
         }
 
@@ -28,7 +28,7 @@
 
         private static SlashdocDictionary ReadSampleAssemblySlashdoc()
         {
-            using (var stream = new FileStream(@"..\..\..\SampleAssembly\bin\Debug\SampleAssembly.xml", FileMode.Open, FileAccess.Read))
+            using (var stream = new FileStream(@"NuDocTests.xml", FileMode.Open, FileAccess.Read))
             {
                 return SlashdocReader.Parse(stream);
             }

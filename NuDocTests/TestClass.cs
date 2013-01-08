@@ -247,6 +247,9 @@
         Three
     }
 
+    /// <summary>
+    /// This class is generic indeed. Perhaps not so useful, but generic.
+    /// </summary>
     public class TestGeneric<T, G>
     {
         private T _t;
@@ -262,6 +265,9 @@
         {
         }
 
+        /// <summary>
+        /// Method with a generic parameter.
+        /// </summary>
         public G Foo(T t)
         {
             return default(G);
@@ -272,15 +278,24 @@
             return null;
         }
 
+        /// <summary>
+        /// A half-open, half-closed generic method.
+        /// </summary>
         public void HalfOpenParameter(TestGeneric<int, G> parameter)
         {
         }
 
+        /// <summary>
+        /// Method with a generic parameter passed by reference.
+        /// </summary>
         public bool TryGetValue(T t, ref G g)
         {
             return false;
         }
 
+        /// <summary>
+        /// Method with an generic output reference parameter.
+        /// </summary>
         public void OutParameter(out G g)
         {
             g = default(G);
@@ -289,6 +304,9 @@
 
     public class TestClassWithGenericMethod
     {
+        /// <summary>
+        /// A generic method.
+        /// </summary>
         public void Bar<Q>(Q q)
         {
         }
@@ -331,7 +349,7 @@
     public class SlashdocTestClass
     {
         /// <summary>
-        /// An important property. <see cref="SampleAssembly"/> Yes box allright.
+        /// An important property. <see cref="TestData.Xyz.Foo"/> Yes box allright.
         /// </summary>
         public bool Foo { get; set; }
 
