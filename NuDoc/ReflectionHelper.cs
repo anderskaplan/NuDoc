@@ -25,9 +25,25 @@
             return type.IsVisible;
         }
 
-        public static bool IsTrivialMethod(MemberInfo method)
+        public static bool IsTrivialMethod(MethodBase method)
         {
-            return method.DeclaringType == typeof(object);
+            if (method.DeclaringType == typeof(object))
+            {
+                return true;
+            }
+
+            if (method.IsVirtual)
+            {
+                var p = method.GetParameters();
+                if ((method.Name.Equals("ToString") && p.Length == 0) ||
+                    (method.Name.Equals("Equals") && p.Length == 1 && p[0].ParameterType == typeof(object)) ||
+                    (method.Name.Equals("GetHashCode") && p.Length == 0))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static IEnumerable<ConstructorInfo> GetVisibleConstructors(Type type)

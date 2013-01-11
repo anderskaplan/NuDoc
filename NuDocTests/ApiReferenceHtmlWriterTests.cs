@@ -207,6 +207,26 @@
             DescribeTheSlashdocMappingTestClass(false, mockLogger.Object);
         }
 
+        [Test]
+        public void ShouldNotIncludeTrivialMethods()
+        {
+            var slashdoc = new SlashdocDictionary();
+
+            var stream = DescribeType(typeof(TestData.Xyz.Foo.PublicTestClass), slashdoc);
+
+            var xmlReader = XmlReader.Create(stream, new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore });
+            var resolver = CreateHtmlNamespaceResolver(xmlReader);
+            var navigator = CreateXPathNavigator(xmlReader);
+
+            var node = navigator.SelectSingleNode("//html:div[@id='TestData.Xyz.Foo.PublicTestClass']", resolver);
+            var content = GetNodeContent(node);
+            Assert.That(!content.Contains("ToString()"), "the 'trivial' ToString method shouldn't be listed in the API reference.");
+            Assert.That(!content.Contains("Equals(object"), "the 'trivial' ToString method shouldn't be listed in the API reference.");
+            Assert.That(!content.Contains("GetHashCode()"), "the 'trivial' ToString method shouldn't be listed in the API reference.");
+            Assert.That(content.Contains("ToString(int x)"), "the non-trivial ToString(int) method should be listed in the API reference.");
+            Assert.That(content.Contains("Equals(PublicTestClass"), "the non-trivial Equals(PublicTestClass) method should be listed in the API reference.");
+        }
+
         private static void DescribeTheSlashdocMappingTestClass(bool enableMissingSummaryWarnings, ILog logger)
         {
             var language = new CSharpSignatureProvider();

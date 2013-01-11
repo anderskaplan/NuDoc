@@ -12,7 +12,7 @@ namespace NuDocTests
             //new DocumentationEngineTests().ShouldGenerateSlashdocForPublicTypesAndMembersOnly();
             //new CSharpSignatureProviderTests().ShouldProvideSignaturesForGenericMethodMembers();
             //new CSharpTypeReferenceProviderTests().ShouldReferenceGenericTypes();
-            new ApiReferenceHtmlWriterTests().ShouldReportMissingSlashdocSummariesWhenWarningsAreEnabled();
+            new ApiReferenceHtmlWriterTests().ShouldNotIncludeTrivialMethods();
             //new SlashdocReaderTests().ShouldFailWhenReadingAnInvalidSlashdocFile();
             //new SlashdocIdentifierProviderTests().ShouldProvideIdentifiersForGenericTypesAndMembers();
             //new AssemblyReflectorTests().ShouldLookTypesByName();

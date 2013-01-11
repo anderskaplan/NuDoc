@@ -74,6 +74,29 @@
 
     public class PublicTestClass
     {
+        public override string ToString()
+        {
+            return "yep, it's me.";
+        }
+
+        public override bool Equals(object obj)
+        {
+            return object.ReferenceEquals(this, obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return 17;
+        }
+
+        public virtual void ToString(int x)
+        {
+        }
+
+        public virtual bool Equals(PublicTestClass p)
+        {
+            return false;
+        }
     }
 
     public class SpecializedTestClass : PublicTestClass
