@@ -137,7 +137,14 @@
             var typeName = SlashdocIdentifierProvider.GetTypeName(cref);
             if (typeName == null)
             {
-                return string.Empty;
+                if (cref.Length > 2 && cref[1] == ':')
+                {
+                    return cref.Substring(2);
+                }
+                else
+                {
+                    return string.Empty;
+                }
             }
 
             var type = _assemblyReflector.LookupType(typeName);

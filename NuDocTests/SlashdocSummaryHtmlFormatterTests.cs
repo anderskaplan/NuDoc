@@ -78,9 +78,10 @@
             Assert.That(formatter.FormatSummary("<summary>Hello, <see cref=\"T:System.EventArgs\" />!</summary>"), Is.EqualTo("Hello, System.EventArgs!"));
             Assert.That(formatter.FormatSummary("<summary>Hello, <seealso cref=\"T:System.EventArgs\" />!</summary>"), Is.EqualTo("Hello, System.EventArgs!"));
 
-            // !:Error: type lookup fails
-            Assert.That(formatter.FormatSummary("<summary>Hello, <see cref=\"!:Error\" />!</summary>"), Is.EqualTo("Hello, !"));
-            Assert.That(formatter.FormatSummary("<summary>Hello, <seealso cref=\"!:Error\" />!</summary>"), Is.EqualTo("Hello, !"));
+            // !:Error, E:Foo.Bar: no type lookup, just strip the meta-type identifier
+            Assert.That(formatter.FormatSummary("<summary>Hello, <see cref=\"!:Error\" />!</summary>"), Is.EqualTo("Hello, Error!"));
+            Assert.That(formatter.FormatSummary("<summary>Hello, <seealso cref=\"!:Error\" />!</summary>"), Is.EqualTo("Hello, Error!"));
+            Assert.That(formatter.FormatSummary("<summary>Hello, <see cref=\"E:Foo.Bar\" />!</summary>"), Is.EqualTo("Hello, Foo.Bar!"));
 
             Assert.That(formatter.FormatSummary("<summary>Hello, <see />!</summary>"), Is.EqualTo("Hello, !"), "The parser doesn't choke when the attribute is missing.");
         }
