@@ -138,9 +138,17 @@
                 return new object[] { };
             }
 
-            return type.Namespace.Split('.')
-                .Concat(GetTypeAndDeclaringTypesSequence(type))
-                .ToList();
+            if (type.Namespace != null)
+            {
+                return type.Namespace.Split('.')
+                    .Concat(GetTypeAndDeclaringTypesSequence(type))
+                    .ToList();
+            }
+            else
+            {
+                return GetTypeAndDeclaringTypesSequence(type)
+                    .ToList();
+            }
         }
 
         private static IList<object> GetTypeAndDeclaringTypesSequence(Type type)
